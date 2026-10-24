@@ -4426,4 +4426,106 @@ setInterval(polls,8000);const pk21=setInterval(()=>{if(SY){polls();clearInterval
 </script>
 
 <script src="./extras.js?v=1"></script>
+<script>
+(function () {
+  var KEY = 'dmr_perfil_cache';
+  var MSG = 'No tienes conexión a internet';
+
+  // ---- Aviso ----
+  function aviso(txt) {
+    var t = document.createElement('div');
+    t.textContent = txt;
+    t.style.cssText = 'position:fixed;left:50%;bottom:90px;transform:translateX(-50%);' +
+      'background:#1b1f3a;color:#fff;border:2px solid #3b6cff;padding:12px 20px;' +
+      'border-radius:14px;font:600 15px sans-serif;z-index:999999;text-align:center;max-width:80%';
+    document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 2500);
+  }
+
+  // ---- Encontrar la tarjeta de perfil (la que tiene "NIVEL n" junto al botón DOP) ----
+  function buscarPerfil() {
+    var todos = document.querySelectorAll('body *');
+    for (var i = 0; i < todos.length; i++) {
+      var e = todos[i];
+      if (e.children.length === 0 && /^NIVEL\s*\d+/i.test(e.textContent.trim())) {
+        var x = e;
+        while (x.parentElement && x.parentElement !== document.body) {
+          var p = x.parentElement;
+          var hermanoDOP = Array.prototype.some.call(p.children, function (c) {
+            return c !== x && /DOP\s*\d+/i.test(c.textContent);
+          });
+          if (hermanoDOP) return x;
+          x = p;
+        }
+      }
+    }
+    return null;
+  }
+
+  function buscarBoton(texto) {
+    var bs = document.querySelectorAll('button, [role="button"], div, a');
+    for (var i = 0; i < bs.length; i++) {
+      if (bs[i].children.length < 4 && bs[i].textContent.trim().toUpperCase().indexOf(texto) !== -1 &&
+          bs[i].textContent.length < 40) return bs[i];
+    }
+    return null;
+  }
+
+  // ---- Guardar perfil (solo con internet) ----
+  function guardar() {
+    if (!navigator.onLine) return;
+    var p = buscarPerfil();
+    if (!p) return;
+    try {
+      localStorage.setItem(KEY, JSON.stringify({
+        html: p.innerHTML,
+        admin: !!buscarBoton('PANEL MAESTRO')
+      }));
+    } catch (e) {}
+  }
+
+  // ---- Restaurar perfil (sin internet) ----
+  function restaurar() {
+    if (navigator.onLine) return;
+    var c;
+    try { c = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+    if (!c) return;
+    var p = buscarPerfil();
+    if (p && p.innerHTML !== c.html) p.innerHTML = c.html;
+    if (c.admin) {
+      var b = buscarBoton('PANEL MAESTRO');
+      if (b) b.style.display = '';
+    }
+  }
+
+  // ---- Bloquear ONLINE y RANKING sin internet ----
+  document.addEventListener('click', function (ev) {
+    if (navigator.onLine) return;
+    var el = ev.target.closest('button, [role="button"], div, a');
+    while (el && el !== document.body) {
+      var t = el.textContent.trim().toUpperCase();
+      if (t.length < 25 && (t.indexOf('ONLINE') !== -1 || t.indexOf('RANKING') !== -1)) {
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        aviso(MSG);
+        return;
+      }
+      el = el.parentElement;
+    }
+  }, true);
+
+  // ---- Cuándo ejecutar ----
+  window.addEventListener('load', function () {
+    [300, 1200, 3000, 6000].forEach(function (ms) {
+      setTimeout(function () { navigator.onLine ? guardar() : restaurar(); }, ms);
+    });
+  });
+  window.addEventListener('offline', function () { setTimeout(restaurar, 300); });
+  window.addEventListener('online', function () { setTimeout(guardar, 3000); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') guardar();
+  });
+  setInterval(guardar, 15000);
+})();
+</script>
 </body></html>
