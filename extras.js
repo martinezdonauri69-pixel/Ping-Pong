@@ -18,3 +18,26 @@
  }
  requestAnimationFrame(tick);
 })();
+
+
+/* CONTADOR DE FPS: abajo a la derecha, discreto */
+(function(){
+ const el=document.createElement('div');
+ el.style.cssText='position:fixed;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:2;display:none;pointer-events:none;background:#000b;border:1px solid #ffffff33;border-radius:10px;padding:3px 9px;font:800 12px system-ui,Arial;letter-spacing:1px;box-shadow:0 0 10px rgba(0,0,0,.6)';
+ document.body.appendChild(el);
+ let last=performance.now(),n=0,acc=0;
+ function tick(now){
+  const dt=now-last;last=now;
+  if(mode==='play'&&!paused&&dt<500){
+   n++;acc+=dt;
+   if(acc>=500){
+    const f=Math.round(n*1000/acc),c=f>=50?'#4dff9a':f>=30?'#ffd400':'#ff4d5e';
+    n=0;acc=0;
+    el.innerHTML='<span style="opacity:.55;font-size:10px;letter-spacing:2px">FPS</span> <b style="color:'+c+';text-shadow:0 0 8px '+c+'">'+f+'</b>';
+    el.style.display='block';
+   }
+  }else if(mode!=='play'){n=0;acc=0;el.style.display='none'}
+  requestAnimationFrame(tick);
+ }
+ requestAnimationFrame(tick);
+})();
