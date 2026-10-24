@@ -531,3 +531,63 @@
  addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('sv').classList.contains('hide')){if(S.pan){S.pan=false;$('svR').classList.remove('open')}else close()}});
  const _u=updPC;updPC=function(){_u.apply(this,arguments);try{if(!$('sv').classList.contains('hide'))paintCoin()}catch(e){}};
 })();
+
+
+/* ===== TIENDA · AJUSTE PARA TELÉFONO (pegar al FINAL de tu segundo archivo, después del bloque TIENDA V3) ===== */
+(function(){
+ if(window.__shopPhone)return;window.__shopPhone=1;
+ const st=document.createElement('style');st.id='shopPhone';
+ st.textContent=`
+ /* ARREGLO PARA PC Y TELÉFONO: la clase "big" de tu juego pintaba el precio como un botón rojo gigante */
+ #sv .svPr.big{width:auto;padding:0;border:0;border-radius:0;background:none;box-shadow:none;font-size:17px;letter-spacing:0;line-height:1.2;font-weight:800;display:flex;align-items:center;gap:6px}
+ #sv .svBuy{background:#050a28}
+
+ @media(max-width:900px){
+  #sv{gap:8px;padding:calc(8px + env(safe-area-inset-top,0px)) 8px calc(8px + env(safe-area-inset-bottom,0px))}
+
+  /* cabecera en 2 filas ordenadas: título + saldo + cerrar / buscador + 3 botones */
+  #sv .svH{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;grid-template-areas:"t c c x" "q f i s";gap:8px;padding:8px 10px;align-items:center}
+  #sv .svT{grid-area:t;margin:0;gap:8px;min-width:0}
+  #sv .svT svg{width:30px;height:30px}
+  #sv .svT b{font-size:18px;letter-spacing:3px}
+  #sv .svT small{font-size:7px;letter-spacing:1.5px;white-space:nowrap}
+  #sv .svC{grid-area:c;justify-self:end;padding:6px 10px;font-size:13px}
+  #sv .svB{width:38px;height:38px;font-size:16px;border-radius:10px}
+  #sv .svB.x{grid-area:x}
+  #sv #svQ{grid-area:q;flex:none;width:100%;min-width:0;padding:8px 10px;font-size:13px}
+  #sv #svFr{grid-area:f}#sv #svIb{grid-area:i}#sv #svSt{grid-area:s}
+
+  /* igual que la PC: menú de categorías a la izquierda (angosto) y artículos a la derecha */
+  #sv .svM{grid-template-columns:62px minmax(0,1fr);grid-template-rows:minmax(0,1fr);gap:8px}
+  #sv .svL{flex-direction:column;overflow-x:hidden;overflow-y:auto;gap:6px}
+  #sv .svL button{flex-direction:column;justify-content:center;gap:2px;padding:9px 2px;font-size:8.5px;letter-spacing:0;text-align:center;border-radius:12px;min-height:58px}
+  #sv .svL button span{font-size:22px;width:auto;line-height:1}
+  #sv .svL button.inv{margin-top:auto}
+
+  /* zona de artículos compacta */
+  #sv .svC2{padding:8px}
+  #sv #svT{gap:8px;margin-bottom:6px}
+  #sv #svT span{font-size:22px}
+  #sv #svT b{font-size:16px;letter-spacing:1px}
+  #sv #svT small{font-size:10px;line-height:1.2}
+  #sv .svTb{flex-wrap:nowrap;gap:5px;padding-bottom:8px;margin-bottom:8px}
+  #sv .svS{flex:1 1 0;min-width:0;padding:6px 3px;font-size:10px}
+  #sv #svG{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  #sv .svK{padding:6px 4px;gap:3px;border-radius:12px}
+  #sv .svK canvas{width:76px!important;height:76px!important;-webkit-mask-image:radial-gradient(closest-side,#000 70%,transparent 100%);mask-image:radial-gradient(closest-side,#000 70%,transparent 100%)}
+  #sv .svK b{font-size:12px}
+  #sv .svRt{font-size:8px;padding:2px 6px}
+  #sv .svPr{font-size:11px}
+  #sv .svA{padding:7px 2px;font-size:11px}
+
+  /* detalles: ventana que sube desde abajo (como el panel derecho de la PC) */
+  #sv .svR.open{position:fixed;left:0;right:0;bottom:0;top:auto;height:88vh;height:88dvh;border-radius:20px 20px 0 0;background:#050a28;padding:12px 12px 0;box-shadow:0 0 0 100vmax rgba(0,0,10,.78),0 0 24px var(--rc,#2a6bff);z-index:30}
+  #sv .svRx{align-self:stretch;padding:9px;font-size:12px}
+  #sv .svBW canvas{height:26vh!important;width:100%!important;object-fit:contain;background:#03040f}
+  #sv #svCt{max-height:24vh;object-fit:contain;background:#02020a}
+  #sv .svNm b{font-size:18px}
+  #sv .svD{font-size:12.5px}
+  #sv .svBuy{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+ }`;
+ document.head.appendChild(st);
+})();
