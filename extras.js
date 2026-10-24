@@ -592,7 +592,7 @@
  document.head.appendChild(st);
 })();
 
-/* ===== D.M.R v22: MAPA DE NIVELES NUEVO (pegar al FINAL de tu segundo archivo) ===== */
+/* ===== D.M.R v22b: MAPA DE NIVELES (fondos arreglados + puertas en el nivel 10, 20, 30...) ===== */
 (function(){
 if(window.__dmr22)return;window.__dmr22=1;
 const rd=n=>{const s=Math.sin(n*127.1)*43758.5;return s-Math.floor(s)};
@@ -600,7 +600,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const BEST=()=>VER?100:(prof.best||0);
 const zi=L=>Math.min(9,Math.floor((L-1)/10));
 const ZN=[['ZONA VOLCÁNICA','#ff3b1f','#ffa000'],['ZONA ELÉCTRICA','#b6ff00','#ffe600'],['BOSQUE MISTERIOSO','#19e65a','#d8ff5a'],['CIUDAD NEÓN','#2a6bff','#c040ff'],['OCÉANO PROFUNDO','#0a7aff','#00d0ff'],['DESIERTO DORADO','#ff9a1f','#ffd24a'],['REINO DE HIELO','#7fe3ff','#d8f6ff'],['SELVA SALVAJE','#4dff3a','#b8ff3a'],['DIMENSIÓN CÓSMICA','#a64dff','#ff4dff'],['FORTALEZA SUPREMA','#ff2233','#ffd24a']];
-const STEP=104,DOOR=176,TOP=520,BOT=190;
+const STEP=104,DOOR=110,TOP=520,BOT=190;
 
 /* ---------- RETOS (uno por nivel) ---------- */
 const CHS=[
@@ -695,7 +695,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 #lmSc{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
 #lmSc::-webkit-scrollbar{display:none}
 #lmIn{position:relative;margin:0 auto}
-#lmIn canvas.zc{position:absolute!important;inset:auto!important;left:0!important}
+#lmIn canvas.zc{position:absolute!important;left:0!important;right:auto!important;bottom:auto!important;max-width:none!important;z-index:0}
 #lmIn svg{position:absolute;left:0;top:0;pointer-events:none;z-index:2}
 .lmH{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top,0px)) 10px 16px;background:linear-gradient(180deg,rgba(2,3,12,.94),rgba(2,3,12,0))}
 .lmH .btn{min-width:0;padding:9px 14px;font-size:14px;flex:none}
@@ -709,8 +709,6 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .mn.cu{border-color:#fff;animation:lmP 1.3s ease-in-out infinite}
 @keyframes lmP{50%{transform:translate(-50%,-50%) scale(1.14);box-shadow:0 0 30px var(--nc),0 0 10px #fff}}
 .mn.lk{background:#03040c;color:#4a4f66;border-color:#242842;box-shadow:none;text-shadow:none}
-.mn.ev{width:80px;height:80px;font-size:26px;border-color:#ffd400;box-shadow:0 0 22px #ffd400,inset 0 0 12px #ffd40055}
-.mn.ev.lk{border-color:#4a4220;box-shadow:none}
 .mn.bs{width:104px;height:104px;font-size:36px;border-color:#ffd24a;box-shadow:0 0 34px #ff2233,0 0 14px #ffd24a}
 .mn.bs.lk{border-color:#4a2a22;box-shadow:none}
 .mst{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:2px;font-size:13px;letter-spacing:1px;white-space:nowrap;pointer-events:none}
@@ -719,19 +717,21 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .mlk{position:absolute;right:-4px;bottom:-4px;font-size:14px}
 .lmSt{position:absolute;transform:translate(-50%,-50%);z-index:3;text-align:center;font-size:11px;font-weight:900;letter-spacing:3px;color:#8fe8ff;text-shadow:0 0 10px #00c8ff}
 .lmSt span{display:block;font-size:42px;filter:drop-shadow(0 0 12px #00c8ff)}
-.dr{position:absolute;transform:translate(-50%,-50%);width:170px;height:128px;z-index:3;cursor:pointer}
-.dr.big{transform:translate(-50%,-50%) scale(1.7)}
+.dr{position:absolute;transform:translate(-50%,-50%) scale(.85);width:170px;height:128px;z-index:4;cursor:pointer}
+.dr.big{transform:translate(-50%,-50%) scale(1.5)}
+.dr.fut{opacity:.55}
 .drA{position:absolute;left:14px;right:14px;top:0;bottom:30px;border:3px solid var(--c);border-bottom:0;border-radius:72px 72px 0 0;overflow:hidden;background:#010208;box-shadow:0 0 20px var(--c),inset 0 0 16px var(--c)}
-.dr.op .drA{animation:lmGl 2s ease-in-out infinite}
-@keyframes lmGl{50%{box-shadow:0 0 34px var(--c),inset 0 0 26px var(--c)}}
+.dr.op .drA,.dr.cu .drA{animation:lmGl 1.6s ease-in-out infinite}
+@keyframes lmGl{50%{box-shadow:0 0 38px var(--c),inset 0 0 26px var(--c)}}
 .drG{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,#fff,var(--c) 40%,transparent 75%);opacity:0;transition:opacity 1s .3s}
 .drL,.drR{position:absolute;top:0;bottom:0;width:50.5%;background:repeating-linear-gradient(90deg,#1b2038 0 6px,#10142a 6px 12px);transition:transform 1.5s cubic-bezier(.65,0,.25,1)}
 .drL{left:0;border-right:2px solid var(--c)}.drR{right:0;border-left:2px solid var(--c)}
 .dr.op .drL{transform:translateX(-102%)}.dr.op .drR{transform:translateX(102%)}.dr.op .drG{opacity:.9}
 .drK{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-size:30px;z-index:2;transition:all .9s;filter:drop-shadow(0 0 8px var(--c))}
 .dr.op .drK{opacity:0;transform:translate(-50%,-160%) scale(1.8)}
-.drT{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:10px;font-weight:900;letter-spacing:2px;background:rgba(5,8,28,.92);border:1px solid var(--c);border-radius:8px;padding:3px 2px;line-height:1.3;box-shadow:0 0 10px var(--c)}
-.drT small{display:block;font-size:8.5px;letter-spacing:0;opacity:.85}
+.drT{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:12px;font-weight:900;letter-spacing:1px;background:rgba(5,8,28,.94);border:1px solid var(--c);border-radius:8px;padding:3px 2px;line-height:1.3;box-shadow:0 0 10px var(--c)}
+.drT small{display:block;font-size:10.5px;letter-spacing:0;opacity:.9}
+.drT em{font-style:normal;color:#3a3f5a}.drT em.on{color:#ffd400}
 #lmSp{position:fixed;left:0;right:0;top:36%;z-index:45;text-align:center;font-size:clamp(26px,9vw,44px);font-weight:900;letter-spacing:4px;pointer-events:none;text-shadow:0 0 24px currentColor;opacity:0}
 #lmSp small{display:block;font-size:12px;letter-spacing:6px;color:#fff;margin-top:6px}
 @keyframes lmSp{0%{opacity:0;transform:scale(.7)}25%{opacity:1;transform:scale(1)}75%{opacity:1}100%{opacity:0;transform:scale(1.15)}}
@@ -750,7 +750,7 @@ document.body.insertAdjacentHTML('beforeend','<div id="lm" class="hide"><div id=
 $('bnext').insertAdjacentHTML('afterend','<button class="btn" id="bmap" type="button">🗺 MAPA DE NIVELES</button>');
 
 /* ---------- construcción del mapa ---------- */
-let W=0,H=0,zb=[],Y=[],DYv=[],io=null,raf=0,run=0,curZ=-1,last=0,tick=0;const vis=new Set(),ST={stop:0};
+let W=0,H=0,zb=[],Y=[],DYv=[],io=null,raf=0,run=0,curZ=-1,last=0,tick=0;const ST={stop:0};
 function build(){
  const In=$('lmIn');W=Math.min(480,innerWidth);H=TOP+99*STEP+9*DOOR+BOT;
  const best=BEST(),cur=Math.min(100,best+1),cx=W/2,amp=W*.3;
@@ -758,20 +758,19 @@ function build(){
  const P=i=>({x:cx+Math.sin(i*.62)*amp,y:H-BOT-((i-1)*STEP+Math.floor((i-1)/10)*DOOR)});
  const dY=k=>(P(10*k).y+P(10*k+1).y)/2;
  In.style.width=W+'px';In.style.height=H+'px';In.innerHTML='';
- if(io)io.disconnect();vis.clear();
- io=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting?vis.add(e.target):vis.delete(e.target)),{root:$('lmSc'),rootMargin:'300px'});
- Y=[];for(let i=1;i<=100;i++)Y[i]=P(i).y;DYv=[];for(let k=1;k<=9;k++)DYv[k]=dY(k);DYv[10]=Y[100]-230;
+ Y=[];for(let i=1;i<=100;i++)Y[i]=P(i).y;
+ DYv=[];for(let k=1;k<=9;k++)DYv[k]=Y[10*k];DYv[10]=Y[100]-230;
  /* zonas con escenarios animados */
  zb=[];const cz=zi(cur);
  for(let z=0;z<10;z++){
   const top=z===9?0:dY(z+1),bot=z===0?H:dY(z);zb.push([top,bot]);
-  const c=document.createElement('canvas');c.className='zc';c.dataset.z=z;c.width=Math.ceil(W/2);c.height=Math.ceil((bot-top)/2);
-  c.style.cssText='top:'+top+'px;width:'+W+'px;height:'+(bot-top)+'px';
+  const c=document.createElement('canvas');c.className='zc';c.dataset.z=z;c.width=Math.ceil(W/2);c.height=Math.max(2,Math.ceil((bot-top)/2));
+  c.style.cssText='top:'+top+'px!important;width:'+W+'px!important;height:'+(bot-top)+'px!important';
   c.style.filter=best<10*z?'brightness('+Math.max(.1,.42-(z-cz)*.05)+') saturate(.55)':'';
   c.__g=c.getContext('2d');c.__bk=bake(c,z,top);In.appendChild(c)}
- /* camino */
+ /* camino (pasa por las puertas) */
  const pts=[];
- for(let i=1;i<=100;i++){const p=P(i);pts.push({x:p.x,y:p.y,lo:i});if(i%10===0&&i<100)pts.push({x:cx,y:dY(i/10),lo:i})}
+ for(let i=1;i<=100;i++){const p=P(i);pts.push({x:p.x,y:p.y,lo:i})}
  pts.push({x:cx,y:DYv[10],lo:100});
  const f=n=>n.toFixed(1);let base='',dim='',dash='';const lit=Array.from({length:10},()=>'');
  for(let j=0;j<pts.length-1;j++){
@@ -788,29 +787,32 @@ function build(){
  In.insertAdjacentHTML('beforeend',svg);
  /* plataforma de inicio */
  In.insertAdjacentHTML('beforeend','<div class="lmSt" style="left:'+P(1).x+'px;top:'+(P(1).y+82)+'px"><span>🏓</span>INICIO</div>');
- /* puertas (cada 10 niveles) y puerta gigante del nivel 100 */
+ /* PUERTAS: en el lugar del nivel 10, 20, 30... y la puerta final arriba */
  for(let k=1;k<=10;k++){
-  const e=EVS[k-1],open=best>=10*k&&prof.dseen[k],col=k===10?'#ffd24a':ZN[k-1][1];
-  const d=document.createElement('div');d.id='dr'+k;d.className='dr'+(k===10?' big':'')+(open?' op':'');
-  d.style.cssText='left:'+cx+'px;top:'+DYv[k]+'px;--c:'+col;
-  d.innerHTML='<div class="drA"><div class="drG"></div><div class="drL"></div><div class="drR"></div></div><div class="drK">🔒</div><div class="drT">'+(k===10?'PUERTA FINAL':'PUERTA '+k*10)+'<small>'+e.ic+' '+e.n+'</small></div>';
-  d.onclick=()=>doorTap(k);In.appendChild(d)}
- /* niveles */
+  const e=EVS[k-1],open=best>=10*k&&prof.dseen[k],col=k===10?'#ffd24a':ZN[k-1][1],lv=10*k;
+  const px=k===10?cx:P(lv).x,py=DYv[k],st=prof.lst[lv]||0;
+  const d=document.createElement('div');d.id='dr'+k;
+  d.className='dr'+(k===10?' big':'')+(open?' op':'')+(k<10&&lv===cur?' cu':'')+(k<10&&lv>cur?' fut':'');
+  d.style.cssText='left:'+px+'px;top:'+py+'px;--c:'+col;
+  d.innerHTML='<div class="drA"><div class="drG"></div><div class="drL"></div><div class="drR"></div></div><div class="drK">🔒</div><div class="drT">'+(k===10?'PUERTA FINAL':'PUERTA '+lv)+'<small>'+e.ic+' '+e.n+'</small>'+(k<10&&best>=lv?'<span>'+[1,2,3].map(q=>'<em'+(q<=st?' class="on"':'')+'>★</em>').join('')+'</span>':'')+'</div>';
+  d.onclick=()=>k===10?doorTap(10):tap(lv);In.appendChild(d)}
+ /* niveles (los 10, 20, 30... son puertas; el 100 es el jefe) */
  for(let i=1;i<=100;i++){
+  if(i%10===0&&i<100)continue;
   const p=P(i),b=document.createElement('button'),st=prof.lst[i]||0,z=ZN[zi(i)];
-  b.type='button';b.className='mn'+(i<=best?' dn':i===cur?' cu':' lk')+(i===100?' bs':i%10===0?' ev':'');
+  b.type='button';b.className='mn'+(i<=best?' dn':i===cur?' cu':' lk')+(i===100?' bs':'');
   b.style.cssText='left:'+p.x+'px;top:'+p.y+'px;--nc:'+z[1]+(i>cur?';opacity:'+Math.max(.14,.62-(i-cur)*.03):'');
-  b.innerHTML=(i%10===0?'<b class="mbd">'+(i===100?'👑':EVS[i/10-1].ic)+'</b>':'')+'<span>'+i+'</span>'+(i>cur?'<i class="mlk">🔒</i>':'<span class="mst">'+[1,2,3].map(k=>'<i'+(k<=st?' class="on"':'')+'>★</i>').join('')+'</span>');
+  b.innerHTML=(i===100?'<b class="mbd">👑</b>':'')+'<span>'+i+'</span>'+(i>cur?'<i class="mlk">🔒</i>':'<span class="mst">'+[1,2,3].map(k=>'<i'+(k<=st?' class="on"':'')+'>★</i>').join('')+'</span>');
   b.onclick=()=>tap(i);In.appendChild(b)}
  upd()}
 
 /* ---------- animación de fondos ---------- */
 function loop(n){raf=requestAnimationFrame(loop);if(n-last<(SET.red?60:33))return;last=n;const t=n/1000,st=$('lmSc').scrollTop,vh=innerHeight;
  document.querySelectorAll('#lmIn canvas.zc').forEach(c=>{const z=+c.dataset.z,b=zb[z];if(!b||b[1]<st-300||b[0]>st+vh+300)return;
-  try{const g=c.__g;g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;scene(z,g,c.width,c.height,t);if(c.__bk)g.drawImage(c.__bk,0,0)}
+  try{const g=c.__g;g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';scene(z,g,c.width,c.height,t);g.globalAlpha=1;g.globalCompositeOperation='source-over';if(c.__bk)g.drawImage(c.__bk,0,0)}
   catch(e){if(!loop.e){loop.e=1;showErr('mapa: '+e.message)}}})}
 
-/* diseño propio de cada nivel (el mismo del tablero) pintado de fondo */
+/* diseño propio de cada nivel pintado de fondo */
 function pat(g,name,x0,y0,w,h,col,sd){
  g.save();g.beginPath();g.rect(x0,y0,w,h);g.clip();g.strokeStyle=col;g.fillStyle=col;g.lineWidth=1.2;g.globalAlpha=.4;
  const ln=(a,b,c,d)=>{g.beginPath();g.moveTo(a,b);g.lineTo(c,d);g.stroke()};
@@ -879,7 +881,7 @@ function tap(i){SFX.click();const best=BEST();
  const c=chOf(i),z=ZN[zi(i)],st=prof.lst[i]||0,col=c.boss?'#ffd400':z[1];
  const row=[1,2,3].map(k=>'<span style="font-size:26px;color:'+(k<=st?'#ffd400':'#3a3f5a')+';text-shadow:'+(k<=st?'0 0 10px #ffd400':'none')+'">★</span>').join('');
  const chips=LV(i).ab.map(k=>'<span class="chip" style="border-color:'+ABIL[k].col+'">'+ABIL[k].ic+' '+ABIL[k].nm+'</span>').join('');
- modal('NIVEL '+i+(i===100?' · JEFE FINAL':''),
+ modal((i%10===0&&i<100?'🚪 PUERTA ':'NIVEL ')+i+(i===100?' · JEFE FINAL':''),
   '<div class="mt" style="color:'+z[1]+'">'+z[0]+(i<=best?' · ✔ COMPLETADO':'')+'</div><div>'+row+'</div>'
   +'<div style="margin:10px 0;padding:10px;border:2px solid '+col+';border-radius:14px;background:#0a1030"><b>'+c.ic+' '+(c.boss?'EVENTO':'RETO')+': '+c.n+'</b><br><small>'+c.d+(c.off?' ('+c.off+' puntos de desventaja)':'')+'</small></div>'
   +'<small>★ Gana · ★★ ≥62% de los puntos · ★★★ ≥75%</small><br><small>🎁 Recompensa: <b style="color:#ffd400">DOP '+fmt(rewardOf(i))+'</b>'+(prof.lrw[i]?' (ya cobrada)':'')+' · +DOP '+(c.boss?25:10)+' por estrella nueva</small>'
