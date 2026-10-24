@@ -592,8 +592,6 @@
  document.head.appendChild(st);
 })();
 
-
-
 /* ===== D.M.R v22: MAPA DE NIVELES NUEVO (pegar al FINAL de tu segundo archivo) ===== */
 (function(){
 if(window.__dmr22)return;window.__dmr22=1;
@@ -770,7 +768,7 @@ function build(){
   const c=document.createElement('canvas');c.className='zc';c.dataset.z=z;c.width=Math.ceil(W/2);c.height=Math.ceil((bot-top)/2);
   c.style.cssText='top:'+top+'px;width:'+W+'px;height:'+(bot-top)+'px';
   c.style.filter=best<10*z?'brightness('+Math.max(.1,.42-(z-cz)*.05)+') saturate(.55)':'';
-  c.__g=c.getContext('2d');In.appendChild(c);io.observe(c)}
+  c.__g=c.getContext('2d');c.__bk=bake(c,z,top);In.appendChild(c)}
  /* camino */
  const pts=[];
  for(let i=1;i<=100;i++){const p=P(i);pts.push({x:p.x,y:p.y,lo:i});if(i%10===0&&i<100)pts.push({x:cx,y:dY(i/10),lo:i})}
@@ -807,8 +805,33 @@ function build(){
  upd()}
 
 /* ---------- animación de fondos ---------- */
-function loop(n){raf=requestAnimationFrame(loop);if(n-last<(SET.red?60:33))return;last=n;const t=n/1000;
- vis.forEach(c=>{try{c.__g.setTransform(1,0,0,1,0,0);c.__g.globalAlpha=1;scene(+c.dataset.z,c.__g,c.width,c.height,t)}catch(e){}})}
+function loop(n){raf=requestAnimationFrame(loop);if(n-last<(SET.red?60:33))return;last=n;const t=n/1000,st=$('lmSc').scrollTop,vh=innerHeight;
+ document.querySelectorAll('#lmIn canvas.zc').forEach(c=>{const z=+c.dataset.z,b=zb[z];if(!b||b[1]<st-300||b[0]>st+vh+300)return;
+  try{const g=c.__g;g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;scene(z,g,c.width,c.height,t);if(c.__bk)g.drawImage(c.__bk,0,0)}
+  catch(e){if(!loop.e){loop.e=1;showErr('mapa: '+e.message)}}})}
+
+/* diseño propio de cada nivel (el mismo del tablero) pintado de fondo */
+function pat(g,name,x0,y0,w,h,col,sd){
+ g.save();g.beginPath();g.rect(x0,y0,w,h);g.clip();g.strokeStyle=col;g.fillStyle=col;g.lineWidth=1.2;g.globalAlpha=.4;
+ const ln=(a,b,c,d)=>{g.beginPath();g.moveTo(a,b);g.lineTo(c,d);g.stroke()};
+ switch(name){
+  case 'grid':for(let x=0;x<=w;x+=16)ln(x0+x,y0,x0+x,y0+h);for(let y=0;y<=h;y+=16)ln(x0,y0+y,x0+w,y0+y);break;
+  case 'circles':for(let r=14;r<w*1.2;r+=14){g.beginPath();g.arc(x0+w/2,y0+h/2,r,0,6.283);g.stroke()}break;
+  case 'diag':for(let i=-h;i<w;i+=16)ln(x0+i,y0,x0+i+h,y0+h);break;
+  case 'stars':for(let k=0;k<22;k++){const px=x0+rd(sd+k)*w,py=y0+rd(sd+k+40)*h,s=2+rd(sd+k+80)*5;g.globalAlpha=.25+rd(k+sd)*.4;g.beginPath();g.moveTo(px,py-s);g.lineTo(px+s*.3,py-s*.3);g.lineTo(px+s,py);g.lineTo(px+s*.3,py+s*.3);g.lineTo(px,py+s);g.lineTo(px-s*.3,py+s*.3);g.lineTo(px-s,py);g.lineTo(px-s*.3,py-s*.3);g.closePath();g.fill()}break;
+  case 'waves':for(let y=6;y<h;y+=14){g.beginPath();for(let x=0;x<=w;x+=6){const yy=y0+y+Math.sin(x/18+y)*5;x?g.lineTo(x0+x,yy):g.moveTo(x0+x,yy)}g.stroke()}break;
+  case 'hex':{const R=14,dx=R*1.732,dy=R*1.5;for(let row=-1;row<h/dy+1;row++)for(let cc=-1;cc<w/dx+1;cc++){const cx=x0+cc*dx+(row&1?dx/2:0),cy=y0+row*dy;g.beginPath();for(let k=0;k<6;k++){const an=Math.PI/3*k+Math.PI/6,px=cx+R*Math.cos(an),py=cy+R*Math.sin(an);k?g.lineTo(px,py):g.moveTo(px,py)}g.closePath();g.stroke()}break}
+  case 'dots':for(let x=8;x<w;x+=14)for(let y=8;y<h;y+=14){g.beginPath();g.arc(x0+x,y0+y,1.4,0,6.283);g.fill()}break;
+  default:for(let y=0;y<=h;y+=18)ln(x0,y0+y,x0+w,y0+y);for(let i=-h;i<w;i+=36){ln(x0+i,y0,x0+i+h,y0+h);ln(x0+i+h,y0,x0+i,y0+h)}}
+ g.restore()}
+function bake(c,z,top){
+ const bk=document.createElement('canvas');bk.width=c.width;bk.height=c.height;const g=bk.getContext('2d'),a=10*z+1,e=10*z+10;
+ for(let i=a;i<=e;i++){
+  const cf=LV(i),y0=i===e?0:((Y[i]+Y[i+1])/2-top)/2,y1=i===a?c.height:((Y[i]+Y[i-1])/2-top)/2;
+  g.globalAlpha=.16;g.fillStyle=cf.c1;g.fillRect(0,y0,c.width,y1-y0);g.globalAlpha=1;
+  pat(g,cf.pat,0,y0,c.width,y1-y0,cf.c1,i*31);
+  g.globalAlpha=.55;g.fillStyle=cf.c1;g.fillRect(0,y0,c.width,1);g.globalAlpha=1}
+ return bk}
 function startLoop(){cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
 function stop(){run++;cancelAnimationFrame(raf);raf=0}
 
@@ -924,4 +947,10 @@ loadMe=async function(){await _lm();
  try{if(ME&&fb&&SY){const s=await FS.getDoc(FS.doc(fb.db,'players',prof.id));if(s.exists()){const d=s.data(),a=d.lst||{};prof.lst=prof.lst||{};for(const k in a)prof.lst[k]=Math.max(prof.lst[k]||0,a[k]);prof.lrw=Object.assign({},prof.lrw||{},d.lrw||{});prof.dseen=Object.assign({},prof.dseen||{},d.dseen||{});_sv()}}}catch(e){}};
 const _fo=$('frOut').onclick;
 $('frOut').onclick=async function(){await _fo.apply(this,arguments);prof.lst={};prof.lrw={};prof.dseen={};_sv()};
+
+/* ---------- ARREGLO: "Unsupported field value: undefined (eq.fx)" ---------- */
+const clean=()=>{const e=prof.eq;if(e)for(const k in e)if(e[k]===undefined)delete e[k]};
+const _dgE=drawGame;drawGame=function(dt){try{_dgE(dt)}finally{clean()}};
+const _spE=saveP;saveP=function(){clean();_spE()};
+clean();
 })();
