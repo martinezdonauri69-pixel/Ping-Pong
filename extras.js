@@ -2855,3 +2855,185 @@ function loop(n){requestAnimationFrame(loop);const slow=SET.red||(window.matchMe
  if(tk%30===0){try{const lst=!$('rnk').classList.contains('hide')||!$('fr2').classList.contains('hide')||!$('pv').classList.contains('hide');if(lst)pubLoad()}catch(e){}}}
 requestAnimationFrame(loop);
 })();
+
+
+/* ===== D.M.R v29: panel maestro rediseñado · foto de perfil visible para todos · 11 puntos · hielo/fuego/rayo ===== */
+(function(){
+if(window.__dmr29)return;window.__dmr29=1;
+
+/* ---------- AJUSTES ---------- */
+const FREEZE=2.5;   /* segundos que se congela la paleta rival con el hielo */
+const SLOWRAY=5;    /* segundos que se ralentiza la paleta rival con el rayo */
+const MAXPTS=11;    /* puntos máximos */
+
+/* =========================================================
+   1) 11 PUNTOS MÁXIMOS (se mantiene el tiempo limitado)
+   ========================================================= */
+function fin11(){
+ mode='over';const el=$('tmr');if(el)el.style.display='none';
+ const a=sc[0],c=sc[1],w0=a>c,pre='🎯 '+MAXPTS+' PUNTOS · '+a+' - '+c;
+ if(two){$('et').textContent='¡GANA '+(w0?(NM[0]||'J1'):(NM[1]||'J2'))+'!';$('exp').textContent=pre}
+ else{
+  $('et').textContent=w0?'¡NIVEL '+lvl+' SUPERADO!':'PERDISTE (NIVEL '+lvl+')';
+  const bon=w0?XP_WIN:XP_LOSS,l0=plv();prof.xp=(prof.xp||0)+bon;const l1=plv();
+  $('exp').textContent=pre+' · +'+bon+' XP'+(l1>l0?' · ¡SUBISTE A NIVEL '+l1+'!':'');
+  if(l1>l0)setTimeout(()=>SFX.hard(),700);
+  if(w0){prof.w++;prof.best=Math.max(prof.best,lvl);if(lvl<100)$('bnext').classList.remove('hide')}
+  else{prof.l++;vib(400)}
+  saveP();showP()}
+ (w0||two?SFX.win:SFX.lose)();$('end').classList.remove('hide')}
+const _pt=point;
+point=function(w){_pt(w);if(mode==='play'&&(sc[0]>=MAXPTS||sc[1]>=MAXPTS))fin11()};
+
+/* =========================================================
+   2) PODERES: hielo congela, fuego acelera, rayo ralentiza
+   ========================================================= */
+const _aa=applyAb;
+applyAb=function(k){
+ _aa(k);
+ try{
+  if(!B||!P)return;const op=1-B.last,p=P[op];if(!p)return;
+  if(k==='hielo'){p.frz=FREEZE;p.slow=Math.max(p.slow||0,FREEZE)}
+  else if(k==='turbo'){p.slow=Math.max(p.slow||0,SLOWRAY);try{gtx.push({s:'⚡ PALETA LENTA '+SLOWRAY+'s',l:1,c:'#ffd400'})}catch(e){}}
+  else if(k==='hielo')return;
+ }catch(e){}};
+const _up=update;
+update=function(dt){
+ let fz=null;
+ try{if(P&&mode==='play'){fz=P.map(p=>p&&p.frz>0?{y:p.y,ty:p.ty}:null)}}catch(e){}
+ _up(dt);
+ try{if(fz)P.forEach((p,i)=>{if(p&&fz[i]){p.y=fz[i].y;p.ty=fz[i].ty;p.frz-=dt;p.slow=Math.max(p.slow||0,.3)}})}catch(e){}};
+
+/* =========================================================
+   3) FOTO DE PERFIL VISIBLE PARA OTROS JUGADORES
+   ========================================================= */
+const okPh=s=>typeof s==='string'&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(s)&&s.length<60000;
+let ready=false,pushed=null,banned=false,chkU='';
+const _sp=saveP;
+saveP=function(){_sp();
+ try{if(ready&&!banned&&ME&&fb&&SY){const p=okPh(prof.photo)?prof.photo:'';
+  if(pushed!==p){pushed=p;FS.setDoc(FS.doc(fb.db,'players',prof.id),{photo:p},{merge:true}).catch(()=>{pushed=null})}}}catch(e){}};
+async function pull(){
+ if(!ME){ready=false;chkU='';pushed=null;banned=false;return}
+ if(!fb||!SY||chkU===ME.uid)return;chkU=ME.uid;
+ try{const d=await pget(prof.id);
+  if(d){banned=!!d.photoBan;
+   if(banned){prof.photo='';_sv();try{setAv()}catch(e){}pushed='';toast('🚫 Tu foto fue retirada por moderación')}
+   else if(okPh(d.photo)){if(!okPh(prof.photo)){prof.photo=d.photo;_sv();try{setAv()}catch(e){}}pushed=d.photo}
+   else pushed=''}
+  ready=true;saveP()}catch(e){chkU=''}}
+/* normas antes de subir la foto */
+const f0=$('upF').onchange;
+$('upF').onchange=function(e){
+ const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+ if(banned){toast('🚫 No puedes cambiar tu foto: fue retirada por moderación');return}
+ modal('📷 NORMAS DE LA FOTO','<small>Solo foto de tu cara o de ti con ropa. No se permiten desnudos, ropa interior ni contenido sexual o violento. Tu foto la verán otros jugadores; si la reportan y se revisa, se retira.</small>',
+  [['ACEPTO',()=>{if(f0)f0.call($('upF'),{target:{files:[f],value:''}})}],['CANCELAR',null,'tg']])};
+
+/* mostrar las fotos de los demás */
+const PHO={},ASK={};let plt=0;
+async function loadPhotos(){
+ if(!fb||!ME||!SY||Date.now()-plt<10000)return;plt=Date.now();
+ try{const s=await FS.getDocs(FS.query(FS.collection(fb.db,'players'),FS.orderBy('xp','desc'),FS.limit(80)));
+  s.forEach(d=>{const x=d.data();if(!x)return;const ok=okPh(x.photo)&&!x.photoBan;
+   if(x.id){if(ok)PHO['i'+x.id]=x.photo;else delete PHO['i'+x.id]}
+   if(x.name){const k='n'+String(x.name).toLowerCase();if(ok)PHO[k]=x.photo;else delete PHO[k]}})}catch(e){}}
+function askId(id){if(!id||id===prof.id||('i'+id) in PHO||(ASK[id]&&Date.now()-ASK[id]<30000))return;ASK[id]=Date.now();
+ pget(id).then(d=>{if(d&&okPh(d.photo)&&!d.photoBan){PHO['i'+id]=d.photo;if(d.name)PHO['n'+String(d.name).toLowerCase()]=d.photo}}).catch(()=>{})}
+function setBg(el,ph){if(!el||!ph)return;const k=ph.length+ph.slice(-14);if(el.dataset.pk===k)return;el.dataset.pk=k;el.style.backgroundImage='url("'+ph+'")'}
+const nm1=el=>{if(!el)return'';const n=el.firstChild&&el.firstChild.nodeType===3?el.firstChild.nodeValue:el.textContent;return String(n||'').trim().toLowerCase()};
+function applyPh(){
+ if(!fb||!ME||!SY)return;
+ const open=['rnk','fr2','pv','fm','rq','ad','ap'].some(i=>{const e=$(i);return e&&!e.classList.contains('hide')});
+ if(open)loadPhotos();
+ const mine=(prof.name||'').toLowerCase();
+ document.querySelectorAll('.rk').forEach(r=>{const n=nm1(r.querySelector('.rkt b'));if(!n||n===mine)return;setBg(r.querySelector('.av'),PHO['n'+n])});
+ document.querySelectorAll('.frr').forEach(r=>{const id=r.dataset.i;if(!id||id===prof.id)return;askId(id);setBg(r.querySelector('.av'),PHO['i'+id])});
+ document.querySelectorAll('.idrow:not(.frr) .av').forEach(a=>{const r=a.closest('.idrow'),n=nm1(r&&r.querySelector('span b'));if(!n||n===mine)return;setBg(a,PHO['n'+n])});
+ try{const pvOpen=!$('pv').classList.contains('hide'),own=!PVc||PVc.id===prof.id;
+  if(pvOpen&&PVc&&!own){const ph=okPh(PVc.photo)&&!PVc.photoBan?PVc.photo:null;setBg($('pvAv'),ph)}
+  const b=$('pvRp');if(b)b.style.display=(pvOpen&&PVc&&!own)?'':'none'}catch(e){}}
+setInterval(()=>{try{pull()}catch(e){}try{applyPh()}catch(e){}},1000);
+/* reportar la foto de otro jugador */
+$('pvX').insertAdjacentHTML('beforebegin','<button class="tg" id="pvRp" type="button" style="display:none">⚠ REPORTAR FOTO</button>');
+$('pvRp').onclick=()=>{SFX.click();const d=PVc;if(!d||d.id===prof.id||!fb||!ME)return;
+ modal('⚠ REPORTAR FOTO','¿Reportar la foto de <b>'+esc(d.name||'este jugador')+'</b> por contenido inapropiado?',[['REPORTAR',async()=>{
+  try{await FS.setDoc(FS.doc(fb.db,'reports',prof.id+'_'+d.id+'_'+Date.now()),{from:prof.id,to:d.id,fromName:prof.name,toName:d.name||'',cat:'foto',sev:3,why:'Foto inapropiada',desc:'Foto de perfil inapropiada',st:'p',match:null,t:Date.now()});toast('⚠ Reporte enviado')}catch(e){toast(errEs(e))}}],['CANCELAR',null,'tg']])};
+
+/* =========================================================
+   4) PANEL MAESTRO: diseño, móvil y correcciones
+   ========================================================= */
+document.head.insertAdjacentHTML('beforeend',`<style>
+#ap{background:linear-gradient(180deg,#05103a 0,#02030c 48%)!important}
+#ap .apw{max-width:560px!important;width:100%;margin:0 auto!important;height:100%;overflow:hidden}
+#ap *{min-width:0;box-sizing:border-box}
+#ap .apc,#ap .rpc,#ap .stc{overflow-wrap:anywhere}
+#ap .aph{gap:8px;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px;background:linear-gradient(90deg,rgba(255,34,51,.28),rgba(42,107,255,.4));border-bottom:2px solid #2a6bff;box-shadow:0 4px 20px rgba(42,107,255,.45)}
+#ap .aph>span{flex:1;font-size:15px;letter-spacing:3px;text-shadow:0 0 12px var(--b)}
+#ap .aph .sm{width:42px;height:42px;flex:none;border-radius:12px}
+#ap #apX{border-color:#ff4a5a;background:linear-gradient(135deg,#8a0a18,#ff2233);box-shadow:0 0 14px rgba(255,34,51,.6)}
+#ap #apPh{border-color:#37d6ff}
+#ap .apt{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px 10px 10px;border-bottom:1px solid #2a6bff55;background:rgba(3,8,32,.85)}
+#ap .apt button{flex:none;width:100%;padding:11px 2px;font-size:11px;border-radius:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:.18s;border:2px solid #1d4fc4;background:rgba(5,10,40,.9)}
+#ap .apt button.on{background:linear-gradient(90deg,var(--a),var(--b));border-color:#fff;box-shadow:0 0 16px var(--b);transform:translateY(-1px)}
+#ap .apb{overflow-x:hidden;padding:12px 12px calc(24px + env(safe-area-inset-bottom,0px))}
+#ap .apc{border:1px solid rgba(42,107,255,.6);background:linear-gradient(180deg,rgba(14,26,80,.72),rgba(5,8,28,.96));border-radius:16px;box-shadow:0 0 12px rgba(42,107,255,.22);animation:ap29 .25s ease-out}
+#ap .apc .apc{background:rgba(3,6,24,.9)}
+@keyframes ap29{from{opacity:0;transform:translateY(6px)}}
+#ap .stc{border:1px solid #2a6bff;background:linear-gradient(180deg,rgba(14,30,100,.7),rgba(4,8,30,.95));box-shadow:0 0 12px rgba(42,107,255,.3)}
+#ap .stg2{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+#ap .g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:6px}
+#ap .bg{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+#ap .tg,#ap .tg.mn{width:100%;max-width:100%;padding:11px 6px;font-size:12px;border-radius:12px;white-space:normal;line-height:1.2}
+#ap .g3 .tg.mn{font-size:11px}
+#ap .btn{min-width:0;width:100%;max-width:100%;padding:13px;font-size:14px;border-radius:14px}
+#ap .rw{flex-wrap:wrap;gap:6px}
+#ap .in,#ap select.in,#ap textarea.in{width:100%;font-size:15px;padding:13px 12px;border-radius:12px;border:2px solid #2a6bff;background:#070d34}
+#ap select.in{appearance:none;-webkit-appearance:none;padding-right:40px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M3 6l5 5 5-5' fill='none' stroke='%237fc4ff' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+#ap #mM{font-weight:800;border-color:#37d6ff;box-shadow:0 0 12px rgba(55,214,255,.3)}
+#mHint{font-size:12px;line-height:1.45;background:#0a1030;border:1px solid #2a6bff;border-radius:10px;padding:9px 11px;opacity:.95}
+#ap .idrow{flex-wrap:wrap;gap:6px}
+#ap .idrow>span{flex:1 1 130px}
+#ap .idrow .tg.mn{width:auto;flex:none}
+#rnk .panel,#pv .panel,#fr2 .panel,#rq .panel{overflow-x:hidden}
+.rk{gap:8px;padding:8px 10px;overflow:hidden;flex-wrap:nowrap}
+.rkn{flex:none;width:28px}
+.rk .av{flex:none}
+.rkt{flex:1 1 0;min-width:0;overflow:hidden}
+.rkt b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rkx{flex:none;font-size:12px}
+</style>`);
+
+/* selector de mensajes: descripción de cada opción + regalar desde ahí */
+const HINT={pm:'✉ MENSAJE PRIVADO: llega al buzón de un jugador. Necesita destinatario, título y texto.',an:'📢 ANUNCIO GLOBAL: lo ven todos los jugadores en su buzón. Te pide confirmación antes de enviar.',gr:'🩶 VERIFICADOS GRISES: solo a jugadores que tengan el sello gris ahora mismo.',em:'📧 CORREO: usa el servicio de correo configurado (requiere la función sendMail en la nube).'};
+function hintUpd(){const M=$('mM'),h=$('mHint');if(!M||!h)return;h.textContent=HINT[M.value]||'';const g=$('mGift');if(g)g.style.display=(M.value==='pm'||M.value==='em')?'':'none'}
+function ensureHint(){const M=$('mM');if(!M||$('mHint'))return;
+ M.insertAdjacentHTML('afterend','<div id="mHint"></div><button class="tg" id="mGift" type="button">🎁 REGALAR MONEDAS U OBJETOS A ESTE JUGADOR</button>');
+ $('mGift').onclick=()=>{SFX.click();const v=($('mT')?$('mT').value:'').trim();if(!v){toast('Escribe primero el ID o el nombre del jugador');return}
+  const b=[...document.querySelectorAll('#apT button')].find(x=>/Regalos/.test(x.textContent));if(!b)return;b.click();setTimeout(()=>{const g=$('gT');if(g)g.value=v},60)};
+ hintUpd()}
+document.addEventListener('change',e=>{if(e.target&&e.target.id==='mM')hintUpd()});
+/* textos "undefined" */
+let ft=0;
+function fixUndef(){const roots=['ap','rnk','fr2','rkL','rq','pv'].map(i=>$(i)).filter(Boolean);
+ roots.forEach(r=>{const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode())){const o=n.nodeValue;if(o.indexOf('undefined')<0)continue;if(n.parentNode&&/^(SCRIPT|STYLE|TEXTAREA|INPUT)$/.test(n.parentNode.nodeName))continue;
+  const v=o.replace(/ID\s+undefined/g,'ID no disponible').replace(/\bundefined\b/g,'Sin nombre disponible');if(v!==o)n.nodeValue=v}})}
+const ob=new MutationObserver(()=>{ensureHint();clearTimeout(ft);ft=setTimeout(fixUndef,120)});
+const apB=$('apB');if(apB)ob.observe(apB,{childList:true,subtree:true});
+['rkL','f2List','rqBox'].forEach(i=>{const e=$(i);if(e)new MutationObserver(()=>{clearTimeout(ft);ft=setTimeout(fixUndef,120)}).observe(e,{childList:true,subtree:true})});
+
+/* moderar fotos (solo administradores) */
+const aph=document.querySelector('#ap .aph');
+if(aph&&$('apX')){$('apX').insertAdjacentHTML('beforebegin','<button class="sm" id="apPh" type="button" aria-label="Moderar fotos">🖼</button>');
+ $('apPh').onclick=()=>{SFX.click();if(document.body.dataset.adm2!=='1'||!fb||!ME)return;
+  modal('🖼 MODERAR FOTO','Escribe el ID del jugador:<input id="mpId" class="in" inputmode="numeric" maxlength="8" placeholder="ID del jugador" style="margin-top:10px">',
+   [['QUITAR FOTO',()=>mod(true)],['PERMITIR OTRA VEZ',()=>mod(false),'tg'],['CERRAR',null,'tg']])};
+ async function mod(ban){const id=($('mpId')||{}).value;const q=String(id||'').trim();
+  if(!/^\d{4,8}$/.test(q)){toast('Escribe un ID válido');return}
+  try{const d=await pget(q);if(!d){toast('No existe ese ID');return}
+   await FS.setDoc(FS.doc(fb.db,'players',q),ban?{photo:'',photoBan:true}:{photoBan:false},{merge:true});
+   delete PHO['i'+q];if(d.name)delete PHO['n'+String(d.name).toLowerCase()];
+   if(ban)await FS.addDoc(FS.collection(fb.db,'inbox'),{toUid:d.uid||'',to:d.id,kind:'sanction',title:'🖼 FOTO RETIRADA',body:'Tu foto de perfil fue retirada por incumplir las normas.',t:Date.now(),read:false}).catch(()=>{});
+   await FS.addDoc(FS.collection(fb.db,'adminLog'),{by:ME.uid,byName:prof.name,action:ban?'photo_remove':'photo_allow',target:q,why:'',result:'ok',t:Date.now()}).catch(()=>{});
+   SFX.point();toast(ban?'🖼 Foto retirada':'✔ Ya puede subir foto')}catch(e){SFX.deny();toast(errEs(e))}}}
+})();
