@@ -3155,3 +3155,24 @@ function addSgTab(){
  T.appendChild(b)}
 setInterval(sched,1500);
 })();
+
+
+/* ===== D.M.R v31: bloquear clic derecho, ver código fuente y atajos de inspección ===== */
+(function(){
+if(window.__dmr31)return;window.__dmr31=1;
+
+/* 1) Sin menú de clic derecho / pulsación larga (se permite solo dentro de campos de texto) */
+const okT=e=>e.target&&e.target.closest&&e.target.closest('input,textarea');
+document.addEventListener('contextmenu',e=>{if(!okT(e))e.preventDefault()},true);
+
+/* 2) Sin atajos: F12, Ctrl+U (ver fuente), Ctrl+S (guardar), Ctrl+Shift+I/J/C (inspeccionar) */
+document.addEventListener('keydown',e=>{
+ const k=(e.key||'').toLowerCase(),c=e.ctrlKey||e.metaKey;
+ if(k==='f12'||(c&&['u','s'].includes(k))||(c&&e.shiftKey&&['i','j','c'].includes(k))||(e.metaKey&&e.altKey&&['i','u'].includes(k))){
+  e.preventDefault();e.stopPropagation();return false}
+},true);
+
+/* 3) Sin arrastrar imágenes ni copiar fuera de los campos de texto */
+document.addEventListener('dragstart',e=>{if(!okT(e))e.preventDefault()},true);
+document.addEventListener('copy',e=>{if(!okT(e))e.preventDefault()},true);
+})();
