@@ -3037,3 +3037,121 @@ if(aph&&$('apX')){$('apX').insertAdjacentHTML('beforebegin','<button class="sm" 
    await FS.addDoc(FS.collection(fb.db,'adminLog'),{by:ME.uid,byName:prof.name,action:ban?'photo_remove':'photo_allow',target:q,why:'',result:'ok',t:Date.now()}).catch(()=>{});
    SFX.point();toast(ban?'🖼 Foto retirada':'✔ Ya puede subir foto')}catch(e){SFX.deny();toast(errEs(e))}}}
 })();
+
+
+
+
+/* ===== D.M.R v30: arreglo panel maestro + filtros desplegables + sugerencias ===== */
+(function(){
+if(window.__dmr30)return;window.__dmr30=1;
+
+document.head.insertAdjacentHTML('beforeend',`<style>
+/* 1) ARREGLO: los botones .mn del panel heredaban el estilo flotante del mapa de niveles */
+#ap .mn,#ap button.mn,#ap .tg.mn{position:static!important;transform:none!important;left:auto!important;top:auto!important;width:auto!important;height:auto!important;min-height:38px;border-radius:10px!important;font-size:12px!important;font-weight:800;letter-spacing:0;padding:9px 10px!important;box-shadow:none!important;animation:none!important;z-index:auto!important;background:rgba(10,20,70,.92)!important;color:#fff!important;border:2px solid #2a6bff!important;text-shadow:none!important;opacity:1!important;white-space:normal;line-height:1.2}
+#ap .mn::before,#ap .mn::after{display:none!important}
+#ap .mn.dn,#ap .mn.cu,#ap .mn.lk,#ap .mn.bs{width:auto!important;height:auto!important}
+
+/* 2) Menú desplegable personalizado */
+.cs30b{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;min-height:46px;border-radius:12px;border:2px solid #2a6bff;background:#070d34;color:#fff;font-size:14px;font-weight:800;text-align:left;box-shadow:0 0 10px rgba(42,107,255,.35)}
+.cs30b span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.cs30b i{font-style:normal;color:#7fc4ff;flex:none}
+.cs30l{position:fixed;z-index:99999;background:#050a2c;border:2px solid #37d6ff;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.7),0 0 18px rgba(55,214,255,.4);overflow-y:auto;padding:6px;animation:cs30 .15s ease-out;scrollbar-width:thin;scrollbar-color:#2a6bff transparent}
+@keyframes cs30{from{opacity:0;transform:translateY(-4px)}}
+.cs30l button{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:12px;min-height:44px;border:0;border-radius:10px;background:transparent;color:#fff;font-size:14px;font-weight:700;text-align:left}
+.cs30l button.on{background:rgba(42,107,255,.35);color:#8fe8ff}
+.cs30l button:active{background:rgba(42,107,255,.5)}
+
+/* 3) Sugerencias */
+#sg30Btn{width:100%;margin-top:10px;padding:12px;border-radius:14px;border:2px solid #ffd400;background:rgba(40,30,0,.55);color:#ffd400;font-size:14px;font-weight:900;letter-spacing:1px;box-shadow:0 0 12px rgba(255,212,0,.3)}
+.sg30c{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.sg30c button{flex:1 1 auto;padding:9px 10px;border-radius:10px;border:2px solid #2a6bff;background:#070d34;color:#fff;font-size:12px;font-weight:800}
+.sg30c button.on{border-color:#ffd400;background:rgba(120,90,0,.5);color:#ffd400}
+#sgT{width:100%;min-height:110px;padding:12px;border-radius:12px;border:2px solid #2a6bff;background:#070d34;color:#fff;font-size:15px;resize:none;user-select:text;-webkit-user-select:text}
+.sg30n{text-align:right;font-size:11px;opacity:.7;margin-top:4px}
+.sg30i{border:1px solid rgba(42,107,255,.6);border-radius:14px;padding:10px;margin-bottom:8px;background:rgba(10,20,70,.7);overflow-wrap:anywhere}
+.sg30i small{opacity:.7;display:block;margin-bottom:4px}
+.sg30i b{color:#ffd400}
+.sg30i .tg{margin-top:8px}
+</style>`);
+
+/* ---------- Desplegable personalizado para todos los <select> del panel ---------- */
+let openL=null;
+function closeL(){if(openL){openL.remove();openL=null}}
+document.addEventListener('click',e=>{if(openL&&!openL.contains(e.target))closeL()});
+document.addEventListener('scroll',closeL,true);
+addEventListener('resize',closeL);
+function showL(sel,b,upd){
+ closeL();
+ const l=document.createElement('div');l.className='cs30l';
+ [...sel.options].forEach((o,i)=>{
+  const it=document.createElement('button');it.type='button';it.className=i===sel.selectedIndex?'on':'';
+  it.innerHTML='<span>'+esc(o.text)+'</span>'+(i===sel.selectedIndex?'<span>✔</span>':'');
+  it.onclick=ev=>{ev.stopPropagation();SFX.click();sel.selectedIndex=i;
+   sel.dispatchEvent(new Event('input',{bubbles:true}));sel.dispatchEvent(new Event('change',{bubbles:true}));upd();closeL()};
+  l.appendChild(it)});
+ document.body.appendChild(l);
+ const r=b.getBoundingClientRect(),vh=innerHeight,below=vh-r.bottom-12,above=r.top-12;
+ const h=Math.min(l.scrollHeight+12,280);
+ const down=below>=Math.min(h,200)||below>=above;
+ const mh=Math.max(120,Math.min(280,down?below:above));
+ l.style.left=Math.max(8,r.left)+'px';l.style.width=Math.min(r.width,innerWidth-16)+'px';
+ l.style.maxHeight=mh+'px';
+ if(down)l.style.top=(r.bottom+4)+'px';else l.style.bottom=(vh-r.top+4)+'px';
+ openL=l}
+function enh(sel){
+ if(sel.dataset.cs||sel.multiple)return;sel.dataset.cs='1';sel.style.display='none';
+ const b=document.createElement('button');b.type='button';b.className='cs30b';
+ const upd=()=>{const o=sel.options[sel.selectedIndex];b.innerHTML='<span>'+esc(o?o.text:'')+'</span><i>▾</i>'};
+ upd();sel.after(b);
+ b.onclick=e=>{e.stopPropagation();SFX.click();showL(sel,b,upd)};
+ sel.addEventListener('change',upd)}
+let rq=0;
+function scan(){rq=0;const ap=$('ap');if(!ap)return;ap.querySelectorAll('select').forEach(enh);addSgTab()}
+function sched(){if(!rq)rq=requestAnimationFrame(scan)}
+const apEl=$('ap');if(apEl)new MutationObserver(sched).observe(apEl,{childList:true,subtree:true});
+
+/* ---------- Sugerencias de los jugadores ---------- */
+let cat='Otra';
+const CATS=['Diseño','Jugabilidad','Online','Errores','Otra'];
+function openSug(txt){
+ modal('💡 AYÚDANOS A MEJORAR D.M.R PING PONG',
+  '<small>¿Qué te gustaría mejorar? (máx. 200 caracteres)</small>'
+  +'<div class="sg30c" id="sgC">'+CATS.map(c=>'<button type="button" data-c="'+c+'" class="'+(c===cat?'on':'')+'">'+c+'</button>').join('')+'</div>'
+  +'<textarea id="sgT" maxlength="200" placeholder="Escribe tu idea..."></textarea><div class="sg30n" id="sgN">0/200</div>',
+  [['ENVIAR SUGERENCIA',async()=>{
+    const v=(($('sgT')||{}).value||'').trim();
+    if(v.length<5){toast('Escribe al menos 5 letras');setTimeout(()=>openSug(v),50);return}
+    await send(v.slice(0,200),cat)}],['CANCELAR',null,'tg']]);
+ setTimeout(()=>{const t=$('sgT');if(t&&txt)t.value=txt;const n=$('sgN');if(t&&n){n.textContent=t.value.length+'/200';t.oninput=()=>{n.textContent=t.value.length+'/200'}}},30)}
+document.addEventListener('click',e=>{const b=e.target.closest('#sgC button');if(!b)return;cat=b.dataset.c;document.querySelectorAll('#sgC button').forEach(x=>x.classList.toggle('on',x===b))});
+async function send(text,c){
+ if(!ME||!fb||!SY){toast('Inicia sesión para enviar sugerencias');return}
+ let last=0;try{last=+localStorage.getItem('sg30')||0}catch(e){}
+ if(Date.now()-last<60000){toast('Espera un minuto para enviar otra');return}
+ try{
+  await FS.addDoc(FS.collection(fb.db,'suggestions'),{uid:ME.uid,pid:prof.id,name:prof.name||'',cat:c,text,t:Date.now()});
+  try{localStorage.setItem('sg30',String(Date.now()))}catch(e){}
+  SFX.point();toast('✔ Sugerencia enviada. ¡Gracias!')
+ }catch(e){SFX.deny();toast(errEs(e))}}
+/* botón en el menú principal */
+const menu=$('menu');
+if(menu&&!$('sg30Btn')){const b=document.createElement('button');b.id='sg30Btn';b.type='button';b.textContent='💡 ENVIAR SUGERENCIA';b.onclick=()=>{SFX.click();au();openSug()};menu.appendChild(b)}
+
+/* pestaña "Sugerencias" solo para administradores */
+function addSgTab(){
+ const T=$('apT');if(!T||T.querySelector('#sg30T')||document.body.dataset.adm2!=='1')return;
+ const b=document.createElement('button');b.id='sg30T';b.type='button';b.textContent='💡 Sugerencias';
+ b.onclick=async()=>{
+  SFX.click();T.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  const B=$('apB');if(!B)return;B.innerHTML='<div class="apc">Cargando sugerencias...</div>';
+  try{
+   const s=await FS.getDocs(FS.query(FS.collection(fb.db,'suggestions'),FS.orderBy('t','desc'),FS.limit(50)));
+   const rows=[];s.forEach(d=>rows.push({id:d.id,...d.data()}));
+   if(!rows.length){B.innerHTML='<div class="apc">Aún no hay sugerencias.</div>';return}
+   B.innerHTML=rows.map(r=>'<div class="sg30i" data-i="'+esc(r.id)+'"><small>'+new Date(r.t||0).toLocaleString()+' · ID '+esc(String(r.pid||'?'))+' · '+esc(r.name||'')+'</small><b>'+esc(r.cat||'Otra')+'</b><div>'+esc(r.text||'')+'</div><button type="button" class="tg" data-del="'+esc(r.id)+'">🗑 BORRAR</button></div>').join('');
+   B.onclick=async e=>{const d=e.target.closest('[data-del]');if(!d)return;
+    try{await FS.deleteDoc(FS.doc(fb.db,'suggestions',d.dataset.del));const it=d.closest('.sg30i');if(it)it.remove();SFX.point()}catch(er){toast(errEs(er))}}
+  }catch(e){B.innerHTML='<div class="apc">No se pudieron leer las sugerencias: '+esc(errEs(e))+'</div>'}};
+ T.appendChild(b)}
+setInterval(sched,1500);
+})();
