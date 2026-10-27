@@ -576,66 +576,305 @@ applyLang();
 })();
 
 
-
-/* ===== D.M.R v34: fondo del menú con fondo.jpg (arena + logo + mesa y paletas) ===== */
+/* ===== D.M.R v35: MENÚ NUEVO (perfil, rango, 12 idiomas, tarjetas, tutorial, recompensa diaria) =====
+   PEGAR AL FINAL DE TODO TU CÓdigo, justo ANTES de </script>. No borres nada de lo anterior. */
 (function(){
-if(window.__dmr34)return;window.__dmr34=1;
-const m=$('menu');if(!m)return;
-const SRC='fondo.jpg';                 /* mismo nombre y misma carpeta que index.html */
-const IW=1024,IH=1536;                 /* tamaño de tu imagen */
-const Y0=295,BH=545;                   /* zona que se muestra: logo + mesa + paletas */
-const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toUpperCase();
+if(window.__dmr35)return;window.__dmr35=1;
+const g=id=>document.getElementById(id);
+const m=g('menu');if(!m)return;
+const SRC='fondo.jpg',IW=1024,IH=1536,Y0=295,BH=545;   /* misma imagen y recorte que v34 */
+const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
+const ls={get(k,d){try{const v=localStorage.getItem('dmr35_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('dmr35_'+k,JSON.stringify(v))}catch(e){}}};
 
-document.head.insertAdjacentHTML('beforeend',`<style>
-#menu{isolation:isolate;background:transparent!important}
-#bg34,#bg34s,#hero34{position:fixed;pointer-events:none;z-index:-1;display:none}
-#bg34{left:0;top:0;width:100%;height:100%;object-fit:cover}
-#bg34s{inset:0;background:linear-gradient(180deg,rgba(2,3,12,.2),rgba(2,3,12,.68) 55%,rgba(2,3,12,.86))}
-#hero34{background-repeat:no-repeat;overflow:hidden;
- -webkit-mask-image:radial-gradient(ellipse at 50% 50%,#000 60%,transparent 100%);mask-image:radial-gradient(ellipse at 50% 50%,#000 60%,transparent 100%);
- animation:h34 7s ease-in-out infinite}
-#hero34 i{position:absolute;right:0;top:0;background:radial-gradient(ellipse at 40% 100%,rgba(40,30,150,.55),#05061f)}
-@keyframes h34{50%{transform:scale(1.025)}}
-@media(prefers-reduced-motion:reduce){#hero34{animation:none}}
+/* ---------- IDIOMAS (orden fijo de textos, separados por |) ---------- */
+const LANGS=[['es','Español','🇪🇸'],['en','English','🇬🇧'],['fr','Français','🇫🇷'],['pt','Português','🇧🇷'],['ar','العربية','🇸🇦'],['zh','中文简体','🇨🇳'],['ja','日本語','🇯🇵'],['ko','한국어','🇰🇷'],['de','Deutsch','🇩🇪'],['it','Italiano','🇮🇹'],['ru','Русский','🇷🇺'],['hi','हिन्दी','🇮🇳']];
+const D={
+es:`JUGAR|¡DEMUESTRA TU TALENTO!|CONTRA IA|Juega contra la máquina|2 JUGADORES|En el mismo dispositivo|ONLINE|Juega con el mundo|TORNEO|Compite y gana|TIENDA|Paletas, pelotas y más|MISIONES|Completa y gana|LOGROS|Desbloquea premios|RANKING|Los mejores jugadores|TUTORIAL|Aprende en minutos|RECOMPENSA DIARIA|¡Inicia sesión y recibe tu premio!|NIVELES|Mapa de niveles|NIVEL|RANGO ACTUAL|Siguiente rango|ENVIAR SUGERENCIA|PANEL MAESTRO|Omitir|Siguiente|¡Listo!|RECLAMAR|Vuelve mañana|Próximamente|TUTORIAL|Desliza el dedo para mover tu paleta.|Devuelve la pelota y gana puntos cuando tu rival falle.|Elige un modo: IA, 2 jugadores u online.|Usa la tienda para desbloquear paletas y pelotas.|Esta función estará disponible más adelante.|BRONCE|PLATA|ORO|PLATINO|DIAMANTE|MAESTRO|Recompensa|IDIOMA`,
+en:`PLAY|SHOW YOUR TALENT!|VS AI|Play against the machine|2 PLAYERS|On the same device|ONLINE|Play with the world|TOURNAMENT|Compete and win|SHOP|Paddles, balls and more|MISSIONS|Complete and win|ACHIEVEMENTS|Unlock rewards|RANKING|The best players|TUTORIAL|Learn in minutes|DAILY REWARD|Log in and get your prize!|LEVELS|Level map|LEVEL|CURRENT RANK|Next rank|SEND FEEDBACK|MASTER PANEL|Skip|Next|Done!|CLAIM|Come back tomorrow|Coming soon|TUTORIAL|Swipe your finger to move your paddle.|Return the ball and score when your rival misses.|Pick a mode: AI, 2 players or online.|Use the shop to unlock paddles and balls.|This feature will be available later.|BRONZE|SILVER|GOLD|PLATINUM|DIAMOND|MASTER|Reward|LANGUAGE`,
+fr:`JOUER|PROUVE TON TALENT !|CONTRE L'IA|Joue contre la machine|2 JOUEURS|Sur le même appareil|EN LIGNE|Joue avec le monde|TOURNOI|Participe et gagne|BOUTIQUE|Raquettes, balles et plus|MISSIONS|Termine et gagne|SUCCÈS|Débloque des récompenses|CLASSEMENT|Les meilleurs joueurs|TUTORIEL|Apprends en quelques minutes|RÉCOMPENSE QUOTIDIENNE|Connecte-toi et reçois ton cadeau !|NIVEAUX|Carte des niveaux|NIVEAU|RANG ACTUEL|Rang suivant|ENVOYER UNE SUGGESTION|PANNEAU MAÎTRE|Passer|Suivant|Terminé !|RÉCLAMER|Reviens demain|Bientôt disponible|TUTORIEL|Glisse le doigt pour déplacer ta raquette.|Renvoie la balle et marque quand ton adversaire rate.|Choisis un mode : IA, 2 joueurs ou en ligne.|Utilise la boutique pour débloquer raquettes et balles.|Cette fonction sera disponible plus tard.|BRONZE|ARGENT|OR|PLATINE|DIAMANT|MAÎTRE|Récompense|LANGUE`,
+pt:`JOGAR|MOSTRE SEU TALENTO!|CONTRA A IA|Jogue contra a máquina|2 JOGADORES|No mesmo dispositivo|ONLINE|Jogue com o mundo|TORNEIO|Compita e ganhe|LOJA|Raquetes, bolas e mais|MISSÕES|Complete e ganhe|CONQUISTAS|Desbloqueie prêmios|RANKING|Os melhores jogadores|TUTORIAL|Aprenda em minutos|RECOMPENSA DIÁRIA|Faça login e receba seu prêmio!|NÍVEIS|Mapa de níveis|NÍVEL|RANK ATUAL|Próximo rank|ENVIAR SUGESTÃO|PAINEL MESTRE|Pular|Próximo|Pronto!|RESGATAR|Volte amanhã|Em breve|TUTORIAL|Deslize o dedo para mover sua raquete.|Devolva a bola e marque pontos quando o rival errar.|Escolha um modo: IA, 2 jogadores ou online.|Use a loja para desbloquear raquetes e bolas.|Este recurso estará disponível mais tarde.|BRONZE|PRATA|OURO|PLATINA|DIAMANTE|MESTRE|Recompensa|IDIOMA`,
+ar:`العب|أظهر موهبتك!|ضد الذكاء الاصطناعي|العب ضد الآلة|لاعبان|على نفس الجهاز|أونلاين|العب مع العالم|بطولة|نافس واربح|المتجر|مضارب وكرات والمزيد|المهام|أكمل واربح|الإنجازات|افتح الجوائز|الترتيب|أفضل اللاعبين|الشرح|تعلّم في دقائق|المكافأة اليومية|سجّل الدخول واستلم جائزتك!|المستويات|خريطة المستويات|المستوى|الرتبة الحالية|الرتبة التالية|إرسال اقتراح|اللوحة الرئيسية|تخطي|التالي|تم!|استلام|عد غدًا|قريبًا|الشرح|مرّر إصبعك لتحريك مضربك.|أعد الكرة وسجّل نقطة عندما يخطئ خصمك.|اختر وضعًا: ذكاء اصطناعي أو لاعبان أو أونلاين.|استخدم المتجر لفتح المضارب والكرات.|ستتوفر هذه الميزة لاحقًا.|برونزي|فضي|ذهبي|بلاتيني|ألماسي|ماستر|المكافأة|اللغة`,
+zh:`开始游戏|展现你的天赋！|对战AI|与电脑对战|双人对战|同一设备|在线|与全世界对战|锦标赛|比赛赢奖励|商店|球拍、乒乓球等|任务|完成任务赢奖励|成就|解锁奖励|排行榜|最强玩家|教程|几分钟学会|每日奖励|登录即可领取奖励！|关卡|关卡地图|等级|当前段位|下一段位|发送建议|管理面板|跳过|下一步|完成！|领取|明天再来|即将推出|教程|滑动手指移动球拍。|回击乒乓球，对手失误时得分。|选择模式：AI、双人或在线。|在商店解锁球拍和乒乓球。|该功能将在稍后开放。|青铜|白银|黄金|铂金|钻石|大师|奖励|语言`,
+ja:`プレイ|才能を見せよう！|AIと対戦|コンピューターと対戦|2人対戦|同じ端末で|オンライン|世界と対戦|トーナメント|競って勝とう|ショップ|ラケット、ボールなど|ミッション|達成して報酬を獲得|実績|報酬を解放|ランキング|トッププレイヤー|チュートリアル|数分で学べる|デイリー報酬|ログインして報酬をゲット！|レベル|レベルマップ|レベル|現在のランク|次のランク|提案を送る|マスターパネル|スキップ|次へ|完了！|受け取る|また明日|近日公開|チュートリアル|指をスライドしてラケットを動かします。|ボールを打ち返し、相手がミスしたら得点。|モードを選択：AI、2人、オンライン。|ショップでラケットとボールを解放しよう。|この機能は後日利用できます。|ブロンズ|シルバー|ゴールド|プラチナ|ダイヤモンド|マスター|報酬|言語`,
+ko:`플레이|실력을 보여주세요!|AI 대전|컴퓨터와 대결|2인 플레이|같은 기기에서|온라인|전 세계와 대결|토너먼트|경쟁하고 승리하세요|상점|라켓, 공 등|미션|완료하고 보상 받기|업적|보상 잠금 해제|랭킹|최고의 플레이어|튜토리얼|몇 분 만에 배우기|일일 보상|로그인하고 보상을 받으세요!|레벨|레벨 지도|레벨|현재 랭크|다음 랭크|건의 보내기|마스터 패널|건너뛰기|다음|완료!|받기|내일 다시 오세요|곧 출시|튜토리얼|손가락을 밀어 라켓을 움직이세요.|공을 받아치고 상대가 놓치면 득점하세요.|모드를 선택하세요: AI, 2인 또는 온라인.|상점에서 라켓과 공을 잠금 해제하세요.|이 기능은 나중에 제공됩니다.|브론즈|실버|골드|플래티넘|다이아몬드|마스터|보상|언어`,
+de:`SPIELEN|ZEIG DEIN KÖNNEN!|GEGEN KI|Spiele gegen die Maschine|2 SPIELER|Auf demselben Gerät|ONLINE|Spiele mit der Welt|TURNIER|Tritt an und gewinne|SHOP|Schläger, Bälle und mehr|MISSIONEN|Erfülle und gewinne|ERFOLGE|Schalte Belohnungen frei|RANGLISTE|Die besten Spieler|TUTORIAL|In Minuten lernen|TÄGLICHE BELOHNUNG|Melde dich an und hol dir deinen Preis!|LEVEL|Levelkarte|LEVEL|AKTUELLER RANG|Nächster Rang|VORSCHLAG SENDEN|MASTER-PANEL|Überspringen|Weiter|Fertig!|ABHOLEN|Komm morgen wieder|Demnächst|TUTORIAL|Wische mit dem Finger, um deinen Schläger zu bewegen.|Schlage den Ball zurück und punkte, wenn dein Gegner verfehlt.|Wähle einen Modus: KI, 2 Spieler oder online.|Im Shop schaltest du Schläger und Bälle frei.|Diese Funktion folgt später.|BRONZE|SILBER|GOLD|PLATIN|DIAMANT|MEISTER|Belohnung|SPRACHE`,
+it:`GIOCA|DIMOSTRA IL TUO TALENTO!|CONTRO L'IA|Gioca contro la macchina|2 GIOCATORI|Sullo stesso dispositivo|ONLINE|Gioca con il mondo|TORNEO|Competi e vinci|NEGOZIO|Racchette, palline e altro|MISSIONI|Completa e vinci|TRAGUARDI|Sblocca premi|CLASSIFICA|I migliori giocatori|TUTORIAL|Impara in pochi minuti|PREMIO GIORNALIERO|Accedi e ricevi il tuo premio!|LIVELLI|Mappa dei livelli|LIVELLO|RANGO ATTUALE|Prossimo rango|INVIA SUGGERIMENTO|PANNELLO MASTER|Salta|Avanti|Fatto!|RISCUOTI|Torna domani|In arrivo|TUTORIAL|Scorri il dito per muovere la racchetta.|Rimanda la pallina e segna quando l'avversario sbaglia.|Scegli una modalità: IA, 2 giocatori o online.|Usa il negozio per sbloccare racchette e palline.|Questa funzione sarà disponibile più avanti.|BRONZO|ARGENTO|ORO|PLATINO|DIAMANTE|MAESTRO|Premio|LINGUA`,
+ru:`ИГРАТЬ|ПОКАЖИ СВОЙ ТАЛАНТ!|ПРОТИВ ИИ|Играй против машины|2 ИГРОКА|На одном устройстве|ОНЛАЙН|Играй со всем миром|ТУРНИР|Соревнуйся и побеждай|МАГАЗИН|Ракетки, мячи и многое другое|МИССИИ|Выполняй и побеждай|ДОСТИЖЕНИЯ|Открывай награды|РЕЙТИНГ|Лучшие игроки|ОБУЧЕНИЕ|Научись за пару минут|ЕЖЕДНЕВНАЯ НАГРАДА|Войди в игру и получи приз!|УРОВНИ|Карта уровней|УРОВЕНЬ|ТЕКУЩИЙ РАНГ|Следующий ранг|ОТПРАВИТЬ ИДЕЮ|ПАНЕЛЬ МАСТЕРА|Пропустить|Далее|Готово!|ЗАБРАТЬ|Приходи завтра|Скоро|ОБУЧЕНИЕ|Проводи пальцем, чтобы двигать ракетку.|Отбивай мяч и набирай очки, когда соперник промахнётся.|Выбери режим: ИИ, 2 игрока или онлайн.|В магазине открывай ракетки и мячи.|Эта функция появится позже.|БРОНЗА|СЕРЕБРО|ЗОЛОТО|ПЛАТИНА|АЛМАЗ|МАСТЕР|Награда|ЯЗЫК`,
+hi:`खेलें|अपनी प्रतिभा दिखाएँ!|AI के खिलाफ|मशीन के खिलाफ खेलें|2 खिलाड़ी|एक ही डिवाइस पर|ऑनलाइन|दुनिया के साथ खेलें|टूर्नामेंट|मुकाबला करें और जीतें|दुकान|पैडल, गेंद और बहुत कुछ|मिशन|पूरा करें और जीतें|उपलब्धियाँ|इनाम अनलॉक करें|रैंकिंग|सर्वश्रेष्ठ खिलाड़ी|ट्यूटोरियल|मिनटों में सीखें|दैनिक इनाम|लॉग इन करें और इनाम पाएँ!|लेवल|लेवल मैप|लेवल|वर्तमान रैंक|अगली रैंक|सुझाव भेजें|मास्टर पैनल|छोड़ें|आगे|हो गया!|पाएँ|कल फिर आएँ|जल्द आ रहा है|ट्यूटोरियल|पैडल हिलाने के लिए उंगली स्लाइड करें।|गेंद लौटाएँ और विरोधी के चूकने पर अंक पाएँ।|मोड चुनें: AI, 2 खिलाड़ी या ऑनलाइन।|दुकान से पैडल और गेंदें अनलॉक करें।|यह सुविधा बाद में उपलब्ध होगी।|कांस्य|रजत|स्वर्ण|प्लैटिनम|डायमंड|मास्टर|इनाम|भाषा`
+};
+const TX={};for(const k in D)TX[k]=D[k].split('|');
+const EXTRA={};
+let lang=ls.get('lang','es');if(!TX[lang])lang='es';
+const t=i=>(TX[lang]&&TX[lang][i])||TX.es[i]||'';
+/* API para traducir el resto del juego: DMR_I18N.add('es',{clave:'texto'}) y DMR_I18N.t('clave') */
+window.DMR_I18N={get lang(){return lang},setLang:l=>setLang(l),add(l,o){EXTRA[l]=Object.assign(EXTRA[l]||{},o)},t(k,fb){return (EXTRA[lang]&&EXTRA[lang][k])||(EXTRA.es&&EXTRA.es[k])||fb||k}};
+
+/* ---------- CSS ---------- */
+document.head.insertAdjacentHTML('beforeend',`<style id="m35css">
+.m35h{position:absolute!important;left:-9999px!important;top:0!important;width:100vw!important;opacity:0!important;pointer-events:none!important}
+#bg34,#bg34s,#hero34{display:none!important}
+#m35{position:fixed;inset:0;z-index:1;overflow-y:auto;overflow-x:hidden;background:#05061f;color:#fff;font-family:Roboto,'Segoe UI','Noto Sans','Noto Sans Arabic','Noto Sans JP','Noto Sans KR','Noto Sans SC','Noto Sans Devanagari',system-ui,sans-serif;-webkit-tap-highlight-color:transparent;overscroll-behavior:contain}
+#m35 *{box-sizing:border-box}
+#m35 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0;touch-action:manipulation;transition:transform .12s,filter .12s}
+#m35 [data-a]:active{transform:scale(.95);filter:brightness(1.25)}
+#m35 [hidden]{display:none!important}
+#m35c{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#m35s{position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(3,4,16,.35),rgba(3,4,16,.8))}
+#m35w{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:max(10px,env(safe-area-inset-top)) 10px calc(14px + env(safe-area-inset-bottom))}
+#m35 .hd{display:flex;align-items:center;gap:6px;position:relative}
+#m35 .pf{flex:1;min-width:0;display:flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;border:1.5px solid #3b6bff;border-radius:18px;background:linear-gradient(135deg,rgba(24,50,140,.75),rgba(10,16,60,.75));box-shadow:0 0 12px rgba(59,107,255,.35);text-align:start}
+#m35 .av{width:44px;height:44px;flex:none;border-radius:50%;border:2px solid #7fa2ff;background:#0a1240 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden}
+#m35 .av img,#m35 .av canvas,#m35 .av svg{width:100%;height:100%;object-fit:cover}
+#m35 .pi{min-width:0;flex:1}
+#m35 .pi b{display:block;font-size:15px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#m35 .pi small{font-size:10.5px;letter-spacing:.08em;color:#9fb6ff}
+#m35 .xp{height:5px;border-radius:5px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:4px}
+#m35 .xp i{display:block;height:100%;width:0;border-radius:5px;background:linear-gradient(90deg,#8b3dff,#19d3ff);transition:width .5s}
+#m35 .ib{width:36px;height:36px;flex:none;border-radius:50%;border:1.5px solid #3b6bff;background:rgba(8,14,50,.85);font-size:17px;position:relative;display:flex;align-items:center;justify-content:center}
+#m35 .dot{position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#ff2d4f;border:2px solid #05061f;display:none;pointer-events:none}
+#m35 .dot.on{display:block;animation:p35 1.4s infinite}
+@keyframes p35{50%{transform:scale(1.3)}}
+@keyframes in35{from{opacity:0;transform:translateY(10px)}}
+@keyframes fd35{from{opacity:0}}
+#m35 .lg{position:absolute;top:calc(100% + 6px);inset-inline-end:0;width:200px;max-height:min(60vh,430px);overflow:auto;background:rgba(6,10,40,.97);border:1px solid #2b8cff;border-radius:12px;padding:4px;display:none;z-index:30;box-shadow:0 8px 28px rgba(0,0,0,.6)}
+#m35 .lg.on{display:block;animation:in35 .18s}
+#m35 .lg button{display:flex;align-items:center;gap:8px;width:100%;padding:9px 10px;border-radius:8px;font-size:14px;text-align:start}
+#m35 .lg button.on{background:rgba(59,107,255,.25)}
+#m35 .lg em{margin-inline-start:auto;font-style:normal;color:#19d3ff}
+#m35 .r2{display:flex;gap:8px;margin-top:8px;align-items:stretch}
+#m35 .rk{flex:1;min-width:0;display:flex;gap:10px;align-items:center;padding:7px 10px;border:1.5px solid #6a4dff;border-radius:14px;background:linear-gradient(135deg,rgba(40,24,110,.7),rgba(10,12,50,.7))}
+#m35 .rk .gm{font-size:30px;filter:drop-shadow(0 0 6px #8b3dff)}
+#m35 .rk>div{min-width:0;flex:1}
+#m35 .rk small{display:block;font-size:9px;letter-spacing:.08em;color:#a9b5e8;text-transform:uppercase;overflow-wrap:anywhere}
+#m35 .rk b{display:block;font-size:15px}
+#m35 .dop{align-self:center;padding:9px 12px;border:1.5px solid #ffc21a;border-radius:20px;color:#ffc21a;font-weight:800;font-size:14px;background:rgba(40,28,0,.5);white-space:nowrap}
+#m35 .hero{position:relative;margin:4px -10px 0;overflow:hidden;background-repeat:no-repeat;-webkit-mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent)}
+#m35 .hero i{position:absolute;right:0;top:0;background:radial-gradient(ellipse at 40% 100%,rgba(40,30,150,.55),#05061f)}
+#m35 .hero .fl{display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;font-weight:900;font-style:italic;font-size:46px;line-height:.95;text-shadow:0 0 18px #3b6bff}
+#m35 .hero.noimg{height:150px!important}
+#m35 .hero.noimg .fl{display:flex}
+#m35 .play{position:relative;width:100%;height:68px;margin:6px 0 10px;display:flex;align-items:center;justify-content:center;gap:12px;filter:drop-shadow(0 0 10px rgba(25,211,255,.6));animation:in35 .45s backwards}
+#m35 .play::before,#m35 .play::after{content:'';position:absolute;clip-path:polygon(7% 0,93% 0,100% 50%,93% 100%,7% 100%,0 50%)}
+#m35 .play::before{inset:0;background:linear-gradient(90deg,#19d3ff,#3b6bff,#8b3dff)}
+#m35 .play::after{inset:3px;background:linear-gradient(180deg,#0c2275,#0a1042)}
+#m35 .play>*{position:relative;z-index:1}
+#m35 .play .tr{font-size:26px;color:#dff3ff}
+#m35 .play b{display:block;font-size:26px;font-style:italic;letter-spacing:.06em;line-height:1}
+#m35 .play small{display:block;font-size:10px;letter-spacing:.06em;color:#bcd2ff;margin-top:3px}
+#m35 .play em{font-style:normal;font-size:24px;color:#9fc4ff}
+#m35 .gr{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+#m35 .cd{position:relative;min-height:84px;padding:8px 4px 7px;border-radius:14px;border:1.5px solid var(--c);background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(5,8,35,.82));box-shadow:0 0 10px var(--g);text-align:center;animation:in35 .45s backwards}
+#m35 .cd .ic{font-style:normal;font-size:25px;display:block;line-height:1.1}
+#m35 .cd b{display:block;font-size:11.5px;margin-top:3px;line-height:1.15;overflow-wrap:anywhere}
+#m35 .cd small{display:block;font-size:8.5px;color:#b9c4ee;margin-top:2px;line-height:1.2;overflow-wrap:anywhere}
+#m35 .c1{--c:#2f7bff;--g:rgba(47,123,255,.35)}#m35 .c2{--c:#19d3b4;--g:rgba(25,211,180,.3)}#m35 .c3{--c:#a14bff;--g:rgba(161,75,255,.35)}#m35 .c4{--c:#ffb21a;--g:rgba(255,178,26,.3)}#m35 .c5{--c:#d63cff;--g:rgba(214,60,255,.3)}
+#m35 .r3{display:grid;grid-template-columns:1.45fr 1fr;gap:8px;margin-top:8px}
+#m35 .wide{position:relative;display:flex;align-items:center;gap:8px;padding:8px 10px;min-height:56px;border-radius:14px;border:1.5px solid #3b6bff;background:rgba(8,14,52,.8);text-align:start;animation:in35 .45s backwards}
+#m35 .wide.gd{border-color:#ffb21a}
+#m35 .wide i.ic{font-style:normal;font-size:26px}
+#m35 .wide b{display:block;font-size:11px;line-height:1.15;overflow-wrap:anywhere}
+#m35 .wide small{display:block;font-size:9px;color:#b9c4ee;line-height:1.2;overflow-wrap:anywhere}
+#m35 .sg,#m35 .ms{display:block;width:100%;margin-top:10px;padding:11px;border-radius:12px;font-weight:800;font-size:12px;letter-spacing:.06em;text-align:center}
+#m35 .sg{border:1px dashed #d9a516;color:#ffc21a}
+#m35 .ms{border:1.5px solid #ff2d55;color:#ff8aa0;background:rgba(80,10,30,.4)}
+#m35 .ft{text-align:center;margin-top:12px;font-size:10px;letter-spacing:.35em;color:#6f86d8}
+#m35 .mo{position:fixed;inset:0;z-index:60;background:rgba(2,3,14,.78);display:flex;align-items:center;justify-content:center;padding:18px;animation:fd35 .2s}
+#m35 .mb{width:100%;max-width:360px;border:1.5px solid #3b8bff;border-radius:18px;background:linear-gradient(160deg,#0d1850,#070a30);padding:18px;text-align:center;box-shadow:0 0 30px rgba(59,107,255,.45);animation:in35 .25s}
+#m35 .mb h3{margin:0 0 6px;font-size:18px;letter-spacing:.06em}
+#m35 .mb p{margin:6px 0 14px;font-size:14px;line-height:1.4;color:#d5defc}
+#m35 .mb .big{font-size:46px;line-height:1.2}
+#m35 .btns{display:flex;gap:8px}
+#m35 .btns button{flex:1;padding:11px;border-radius:12px;font-weight:800;font-size:13px}
+#m35 .btns .p{background:linear-gradient(90deg,#ff2d55,#3b6bff)}
+#m35 .btns .p:disabled{opacity:.45;filter:grayscale(.6)}
+#m35 .btns .g{border:1px solid #3b6bff}
+#m35 .dots{display:flex;gap:6px;justify-content:center;margin-bottom:10px}
+#m35 .dots s{width:8px;height:8px;border-radius:50%;background:#2a3a80}
+#m35 .dots s.on{background:#19d3ff}
+#m35 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:12px 0 14px}
+#m35 .days div{border:1px solid #2a3a80;border-radius:8px;padding:6px 0;font-size:10px;line-height:1.3}
+#m35 .days .ok{background:rgba(25,211,180,.18);border-color:#19d3b4}
+#m35 .days .now{border-color:#ffb21a;background:rgba(255,178,26,.18)}
+#m35 .tt{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);background:rgba(8,14,52,.95);border:1px solid #3b8bff;padding:10px 16px;border-radius:20px;font-size:13px;z-index:70;animation:fd35 .2s;max-width:90%;text-align:center}
+@media(prefers-reduced-motion:reduce){#m35 *{animation:none!important;transition:none!important}}
 </style>`);
 
-const bg=document.createElement('canvas');bg.id='bg34';
-const sh=document.createElement('div');sh.id='bg34s';
-const hero=document.createElement('div');hero.id='hero34';hero.innerHTML='<i></i>';
-m.insertBefore(hero,m.firstChild);m.insertBefore(sh,m.firstChild);m.insertBefore(bg,m.firstChild);
+/* ---------- ESTRUCTURA ---------- */
+const root=document.createElement('div');root.id='m35';
+const CARDS=[['ai','🤖',2,3,'c1'],['two','👥',4,5,'c2'],['on','🌐',6,7,'c3'],['to','🏆',8,9,'c4'],['sh','🛒',10,11,'c5'],['mi','📋',12,13,'c4'],['ac','🏅',14,15,'c2'],['rk','📊',16,17,'c5'],['tu','📖',18,19,'c1']];
+root.innerHTML=`<canvas id="m35c" width="48" height="72"></canvas><div id="m35s"></div>
+<div id="m35w">
+ <div class="hd">
+  <button class="pf" data-a="pf"><span class="av" id="m35av">🙂</span><span class="pi"><b id="m35nm">PLAYER</b><small><span data-t="24"></span> <span id="m35lv">1</span></small><div class="xp"><i id="m35xp"></i></div></span></button>
+  <button class="ib" data-a="fr">👥</button>
+  <button class="ib" data-a="ml">✉️</button>
+  <button class="ib" data-a="st">⚙️</button>
+  <button class="ib" data-a="lg" id="m35gb">🌐</button>
+  <div class="lg" id="m35lg"></div>
+ </div>
+ <div class="r2">
+  <div class="rk"><span class="gm" id="m35ri">💎</span><div><small data-t="25"></small><b id="m35rk">—</b><div class="xp"><i id="m35rx"></i></div><small id="m35nr"></small></div></div>
+  <div class="dop" id="m35dop" hidden></div>
+ </div>
+ <div class="hero" id="m35h"><i></i><div class="fl">D.M.R<br>PING PONG</div></div>
+ <button class="play" data-a="play"><span class="tr">▶</span><span><b data-t="0"></b><small data-t="1"></small></span><em>›</em></button>
+ <div class="gr">${CARDS.map((c,k)=>`<button class="cd ${c[4]}" data-a="${c[0]}" style="animation-delay:${80+k*40}ms"><i class="ic">${c[1]}</i><b data-t="${c[2]}"></b><small data-t="${c[3]}"></small></button>`).join('')}</div>
+ <div class="r3">
+  <button class="wide" data-a="da" style="animation-delay:480ms"><i class="ic">🎁</i><span><b data-t="20"></b><small id="m35ds"></small></span><u class="dot" id="m35dd"></u></button>
+  <button class="wide gd" data-a="lv" style="animation-delay:520ms"><i class="ic">🗺️</i><span><b data-t="22"></b><small data-t="23"></small></span></button>
+ </div>
+ <button class="ms" data-a="ma" id="m35ms" hidden>🛡️ <span data-t="28"></span></button>
+ <button class="sg" data-a="sg">💡 <span data-t="27"></span></button>
+ <div class="ft">D.M.R PING PONG</div>
+</div>`;
+m.appendChild(root);
+if(getComputedStyle(m).position==='static')m.style.position='relative';
 
-let ok=false;
+/* ---------- BUSCAR LOS BOTONES ORIGINALES (se siguen usando para que todo funcione igual) ---------- */
+const MAP={play:/(^|[^A-Z0-9])JUGAR($|[^A-Z])/,two:/2 JUGADORES/,on:/ONLINE/,sh:/TIENDA/,mi:/MISIONES/,ac:/LOGROS/,rk:/RANKING/,lv:/NIVELES/,sg:/SUGERENCIA/,ma:/PANEL MAESTRO|MAESTRO/,to:/TORNEO/};
+MAP.ai=MAP.play;
+function find(re){let best=null,bl=1e9;
+ m.querySelectorAll('*').forEach(e=>{if(root.contains(e)||e.tagName==='STYLE'||e.tagName==='SCRIPT'||e.tagName==='CANVAS')return;
+  const x=norm(e.textContent);if(x&&x.length<bl&&re.test(x)){best=e;bl=x.length}});
+ return best}
+function smallBtns(){const pc=g('pcard');if(!pc||!pc.parentElement)return[];
+ return [...pc.parentElement.querySelectorAll('button,[onclick],[role=button]')].filter(e=>!pc.contains(e)&&!root.contains(e)&&!/DOP/.test(norm(e.textContent)))}
+function icon(re,idx){
+ let r=null,bl=1e9;
+ m.querySelectorAll('*').forEach(e=>{if(root.contains(e))return;const x=e.textContent.trim();if(x&&x.length<=4&&x.length<bl&&re.test(x)){r=e;bl=x.length}});
+ return r||smallBtns()[idx]||null}
+const IC={fr:[/👥/,0],ml:[/[✉📩📨📧📬📥]/,1],st:[/⚙/,2]};
+function topOf(e){while(e&&e.parentElement&&e.parentElement!==m)e=e.parentElement;return e&&e.parentElement===m?e:null}
+function mark(e){const tp=e&&topOf(e);if(tp&&tp!==root&&!tp.classList.contains('m35h'))tp.classList.add('m35h')}
+function markAll(){
+ mark(g('pcard'));
+ for(const k in MAP){if(k==='ai'||k==='to'||k==='ma')continue;mark(find(MAP[k]))}
+ for(const k in IC)mark(icon(IC[k][0],IC[k][1]));
+ mark(find(/^\W*DOP/))}
+
+/* ---------- TOASTS Y VENTANAS ---------- */
+function toast(s){const e=document.createElement('div');e.className='tt';e.textContent=s;root.appendChild(e);setTimeout(()=>e.remove(),2300)}
+function modal(html){const o=document.createElement('div');o.className='mo';o.innerHTML='<div class="mb">'+html+'</div>';root.appendChild(o);o.addEventListener('click',e=>{if(e.target===o)o.remove()});return o}
+function soon(){const o=modal(`<div class="big">⏳</div><h3>${t(34)}</h3><p>${t(40)}</p><div class="btns"><button class="p" data-x="ok">${t(31)}</button></div>`);o.querySelector('[data-x]').onclick=()=>o.remove()}
+
+/* ---------- TUTORIAL ---------- */
+let tutEl=null;
+function tutorial(i){
+ i=i||0;if(tutEl)tutEl.remove();
+ const E=['👆','🏓','🎮','🛒'];
+ tutEl=modal(`<div class="dots">${[0,1,2,3].map(k=>`<s class="${k===i?'on':''}"></s>`).join('')}</div><div class="big">${E[i]}</div><h3>${t(35)}</h3><p>${t(36+i)}</p><div class="btns"><button class="g" data-x="s">${t(29)}</button><button class="p" data-x="n">${i<3?t(30):t(31)}</button></div>`);
+ tutEl.querySelector('[data-x=s]').onclick=()=>{ls.set('tutDone',1);tutEl.remove();tutEl=null};
+ tutEl.querySelector('[data-x=n]').onclick=()=>{if(i<3)tutorial(i+1);else{ls.set('tutDone',1);tutEl.remove();tutEl=null}}}
+
+/* ---------- RECOMPENSA DIARIA ---------- */
+const DR=[50,75,100,150,200,300,500];   /* DOP por día de racha (cámbialos si quieres) */
+const ymd=o=>{const x=new Date();x.setDate(x.getDate()+o);return x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate()};
+function dstate(){const d=ls.get('daily',{last:'',streak:0});const can=d.last!==ymd(0);const next=can?(d.last===ymd(-1)?(d.streak%7)+1:1):d.streak;return{d,can,next}}
+/* Suma DOP a tu juego. Si tu función de monedas se llama distinto, dime el nombre y lo conecto. */
+function giveDOP(n){
+ for(const k of ['DMR_ADD_DOP','addDop','addDOP','addCoins','addMonedas','sumarDop','giveDop']){try{if(typeof window[k]==='function'){window[k](n);return true}}catch(e){}}
+ return false}
+function dailyUI(){const s=dstate();g('m35dd').classList.toggle('on',s.can);setT(g('m35ds'),s.can?21:33)}
+function daily(){
+ const s=dstate();
+ const o=modal(`<div class="big">🎁</div><h3>${t(20)}</h3><div class="days">${DR.map((v,k)=>`<div class="${k+1<(s.can?s.next:s.next+1)?'ok':''} ${k+1===(s.can?s.next:0)?'now':''}">${k+1}<br><b>${v}</b></div>`).join('')}</div><div class="btns"><button class="g" data-x="c">✕</button><button class="p" data-x="r" ${s.can?'':'disabled'}>${s.can?t(32)+' +'+DR[s.next-1]:t(33)}</button></div>`);
+ o.querySelector('[data-x=c]').onclick=()=>o.remove();
+ o.querySelector('[data-x=r]').onclick=()=>{const z=dstate();if(!z.can)return;
+  if(!giveDOP(DR[z.next-1])){toast('DOP: función de monedas sin conectar');return}
+  ls.set('daily',{last:ymd(0),streak:z.next});o.remove();toast('+'+DR[z.next-1]+' DOP');dailyUI()}}
+
+/* ---------- CLICS ---------- */
+const getAv=()=>g('m35av');
+function act(a){
+ if(a==='tu')return tutorial(0);
+ if(a==='da')return daily();
+ if(a==='lg'){g('m35lg').classList.toggle('on');return}
+ if(a==='pf'){const e=g('pcard');if(e)e.click();return}
+ if(IC[a]){const e=icon(IC[a][0],IC[a][1]);if(e)e.click();else soon();return}
+ const re=MAP[a];const el=re&&find(re);
+ if(el)el.click();else soon()}
+root.addEventListener('click',e=>{
+ const l=e.target.closest('[data-l]');if(l){setLang(l.dataset.l);g('m35lg').classList.remove('on');return}
+ const b=e.target.closest('[data-a]');
+ if(!e.target.closest('#m35lg')&&!(b&&b.dataset.a==='lg'))g('m35lg').classList.remove('on');
+ if(!b)return;
+ try{navigator.vibrate&&navigator.vibrate(8)}catch(x){}
+ act(b.dataset.a)});
+
+/* ---------- IDIOMA ---------- */
+function setT(el,i){el.dataset.t=i;el.textContent=t(i)}
+let curLv=1;
+function setLang(l){if(!TX[l])return;lang=l;ls.set('lang',l);apply()}
+function apply(){
+ root.dir=lang==='ar'?'rtl':'ltr';root.lang=lang;
+ root.querySelectorAll('[data-t]').forEach(e=>e.textContent=t(+e.dataset.t));
+ g('m35lg').innerHTML=LANGS.map(x=>`<button data-l="${x[0]}" class="${x[0]===lang?'on':''}"><span>${x[2]}</span>${x[1]}<em>${x[0]===lang?'✓':''}</em></button>`).join('');
+ setRank(curLv);dailyUI();
+ try{window.dispatchEvent(new CustomEvent('dmr-lang',{detail:lang}))}catch(e){}}
+
+/* ---------- RANGO (según el nivel de jugador 1-100) ---------- */
+const RI=['🥉','🥈','🥇','🛡️','💎','👑'];
+function setRank(L){
+ L=Math.max(1,Math.min(100,(L|0)||1));curLv=L;
+ const T=[1,15,35,55,75,95,101];let i=0;for(let k=0;k<6;k++)if(L>=T[k])i=k;
+ const p=(L-T[i])/(T[i+1]-T[i]);let sub='',bar=p,nx='';
+ if(i<5){const s=Math.min(2,Math.floor(p*3));sub=' '+['III','II','I'][s];bar=p*3-s;
+  nx=s<2?t(41+i)+' '+['II','I'][s]:t(42+i)+(i+1<5?' III':'')}
+ g('m35ri').textContent=RI[i];g('m35rk').textContent=t(41+i)+sub;
+ g('m35rx').style.width=Math.round(bar*100)+'%';
+ g('m35nr').textContent=nx?t(26)+': '+nx:''}
+
+/* ---------- COPIAR DATOS REALES DEL JUEGO (nombre, nivel, avatar, XP, DOP) ---------- */
+let avSig='',cvc=null;
+const isEmo=s=>/^[^\p{L}\p{N}]+$/u.test(s);
+function sync(){
+ const pc=g('pcard');
+ if(pc){
+  const all=pc.textContent;const mm=/NIVEL\s*(\d+)/i.exec(all);const lv=mm?+mm[1]:1;
+  let nm='';for(const e of pc.querySelectorAll('*')){if(e.children.length)continue;const x=e.textContent.trim();if(x&&!/NIVEL/i.test(x)&&!isEmo(x)&&!/^\d+$/.test(x)){nm=x;break}}
+  if(nm)g('m35nm').textContent=nm;
+  g('m35lv').textContent=lv;if(lv!==curLv)setRank(lv);
+  let xp=0;for(const e of pc.querySelectorAll('[style*="width"]')){const w=e.style.width;if(/%$/.test(w)){xp=parseFloat(w)||0;break}}
+  g('m35xp').style.width=Math.max(0,Math.min(100,xp))+'%';
+  const box=getAv();const im=pc.querySelector('img'),cv=pc.querySelector('canvas'),sv=pc.querySelector('svg');
+  if(im&&im.src){const s='i'+im.src;if(s!==avSig){avSig=s;box.style.backgroundImage='';box.innerHTML='';const x=new Image();x.src=im.src;x.alt='';box.appendChild(x)}}
+  else if(cv){if(avSig!=='c'||!cvc){avSig='c';box.innerHTML='';cvc=document.createElement('canvas');box.appendChild(cvc)}
+   try{cvc.width=cv.width;cvc.height=cv.height;cvc.getContext('2d').drawImage(cv,0,0)}catch(e){}}
+  else if(sv){const s='s'+sv.outerHTML.length;if(s!==avSig){avSig=s;box.innerHTML=sv.outerHTML}}
+  else{let bg='',em='';
+   for(const e of pc.querySelectorAll('*')){const b=getComputedStyle(e).backgroundImage;if(b&&b.indexOf('url(')>=0){bg=b;break}}
+   if(!bg)for(const e of pc.querySelectorAll('*')){if(e.children.length)continue;const x=e.textContent.trim();if(x&&isEmo(x)){em=x;break}}
+   const s='b'+bg+em;if(s!==avSig){avSig=s;box.innerHTML=em;box.style.backgroundImage=bg||''}}
+ }
+ const dp=find(/^\W*DOP/);const dd=g('m35dop');
+ if(dp){dd.textContent=dp.textContent.trim().replace(/\s+/g,' ');dd.hidden=false}else dd.hidden=true;
+ const mp=find(MAP.ma);g('m35ms').hidden=!(mp&&mp.getClientRects().length>0)}
+
+/* ---------- FONDO Y HÉROE ---------- */
+const hero=g('m35h');
+function lay(){const w=hero.clientWidth;if(!w)return;
+ if(hero.classList.contains('noimg'))return;
+ hero.style.height=(w*BH/IW)+'px';
+ hero.style.backgroundSize=w+'px '+(w*IH/IW)+'px';
+ hero.style.backgroundPosition='0 '+(-Y0/IW*w)+'px';
+ const p=hero.firstChild;p.style.width='23.5%';p.style.height=(65/IW*w)+'px'}
 const im=new Image();
-im.onload=()=>{
- try{bg.width=48;bg.height=72;bg.getContext('2d').drawImage(im,0,0,48,72)}catch(e){}  /* versión borrosa de ambiente */
- hero.style.backgroundImage='url("'+SRC+'")';ok=true;lay()};
-im.onerror=()=>{ok=false};
+im.onload=()=>{try{g('m35c').getContext('2d').drawImage(im,0,0,48,72)}catch(e){}
+ hero.style.backgroundImage='url("'+SRC+'")';lay()};
+im.onerror=()=>{hero.classList.add('noimg')};
 im.src=SRC;
-
-function titles(on){
- m.querySelectorAll('*').forEach(e=>{if(e.children.length)return;
-  const t=norm(e.textContent);if(t==='D.M.R'||t==='PING PONG')e.style.visibility=on?'hidden':''})}
-
-function lay(){
- try{
-  if(!ok)return;
-  bg.style.display='block';sh.style.display='block';
-  const bar=$('pcard'),jb=[...m.querySelectorAll('button')].find(b=>/JUGAR/.test(norm(b.textContent)));
-  let show=false;
-  if(jb){
-   const top=(bar?bar.getBoundingClientRect().bottom:70)+6,bot=jb.getBoundingClientRect().top-6,gap=bot-top;
-   if(gap>90){
-    let h=gap,w=h*IW/BH;if(w>innerWidth){w=innerWidth;h=w*BH/IW}
-    hero.style.left=((innerWidth-w)/2)+'px';hero.style.top=(top+(gap-h)/2)+'px';
-    hero.style.width=w+'px';hero.style.height=h+'px';
-    hero.style.backgroundSize=w+'px '+(w*IH/IW)+'px';
-    hero.style.backgroundPosition='0 '+(-Y0/IW*w)+'px';
-    const p=hero.firstChild;p.style.width='23.5%';p.style.height=(65/IW*w)+'px';  /* tapa el menú de idiomas dibujado en la imagen */
-    show=true}}
-  hero.style.display=show?'block':'none';
-  titles(show)
- }catch(e){}}
-setInterval(lay,400);
 addEventListener('resize',lay);
+
+/* ---------- BUCLE (solo trabaja cuando el menú se ve) ---------- */
+let vt=0;
+function vis(){const c=getComputedStyle(m);return c.display!=='none'&&c.visibility!=='hidden'&&m.getBoundingClientRect().height>0}
+function tick(){
+ try{
+  if(!vis()){vt=0;return}
+  markAll();sync();lay();dailyUI();
+  if(++vt>=3&&!ls.get('tutDone',0)&&!tutEl&&g('pcard')){ls.set('tutDone',0);tutorial(0);vt=-9999}
+ }catch(e){}}
+apply();tick();
+setInterval(tick,700);
 })();
 
