@@ -575,3 +575,67 @@ setInterval(()=>{if(!$('rnk').classList.contains('hide'))loadEq()},1500);
 applyLang();
 })();
 
+
+
+/* ===== D.M.R v34: fondo del menú con fondo.jpg (arena + logo + mesa y paletas) ===== */
+(function(){
+if(window.__dmr34)return;window.__dmr34=1;
+const m=$('menu');if(!m)return;
+const SRC='fondo.jpg';                 /* mismo nombre y misma carpeta que index.html */
+const IW=1024,IH=1536;                 /* tamaño de tu imagen */
+const Y0=295,BH=545;                   /* zona que se muestra: logo + mesa + paletas */
+const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toUpperCase();
+
+document.head.insertAdjacentHTML('beforeend',`<style>
+#menu{isolation:isolate;background:transparent!important}
+#bg34,#bg34s,#hero34{position:fixed;pointer-events:none;z-index:-1;display:none}
+#bg34{left:0;top:0;width:100%;height:100%;object-fit:cover}
+#bg34s{inset:0;background:linear-gradient(180deg,rgba(2,3,12,.2),rgba(2,3,12,.68) 55%,rgba(2,3,12,.86))}
+#hero34{background-repeat:no-repeat;overflow:hidden;
+ -webkit-mask-image:radial-gradient(ellipse at 50% 50%,#000 60%,transparent 100%);mask-image:radial-gradient(ellipse at 50% 50%,#000 60%,transparent 100%);
+ animation:h34 7s ease-in-out infinite}
+#hero34 i{position:absolute;right:0;top:0;background:radial-gradient(ellipse at 40% 100%,rgba(40,30,150,.55),#05061f)}
+@keyframes h34{50%{transform:scale(1.025)}}
+@media(prefers-reduced-motion:reduce){#hero34{animation:none}}
+</style>`);
+
+const bg=document.createElement('canvas');bg.id='bg34';
+const sh=document.createElement('div');sh.id='bg34s';
+const hero=document.createElement('div');hero.id='hero34';hero.innerHTML='<i></i>';
+m.insertBefore(hero,m.firstChild);m.insertBefore(sh,m.firstChild);m.insertBefore(bg,m.firstChild);
+
+let ok=false;
+const im=new Image();
+im.onload=()=>{
+ try{bg.width=48;bg.height=72;bg.getContext('2d').drawImage(im,0,0,48,72)}catch(e){}  /* versión borrosa de ambiente */
+ hero.style.backgroundImage='url("'+SRC+'")';ok=true;lay()};
+im.onerror=()=>{ok=false};
+im.src=SRC;
+
+function titles(on){
+ m.querySelectorAll('*').forEach(e=>{if(e.children.length)return;
+  const t=norm(e.textContent);if(t==='D.M.R'||t==='PING PONG')e.style.visibility=on?'hidden':''})}
+
+function lay(){
+ try{
+  if(!ok)return;
+  bg.style.display='block';sh.style.display='block';
+  const bar=$('pcard'),jb=[...m.querySelectorAll('button')].find(b=>/JUGAR/.test(norm(b.textContent)));
+  let show=false;
+  if(jb){
+   const top=(bar?bar.getBoundingClientRect().bottom:70)+6,bot=jb.getBoundingClientRect().top-6,gap=bot-top;
+   if(gap>90){
+    let h=gap,w=h*IW/BH;if(w>innerWidth){w=innerWidth;h=w*BH/IW}
+    hero.style.left=((innerWidth-w)/2)+'px';hero.style.top=(top+(gap-h)/2)+'px';
+    hero.style.width=w+'px';hero.style.height=h+'px';
+    hero.style.backgroundSize=w+'px '+(w*IH/IW)+'px';
+    hero.style.backgroundPosition='0 '+(-Y0/IW*w)+'px';
+    const p=hero.firstChild;p.style.width='23.5%';p.style.height=(65/IW*w)+'px';  /* tapa el menú de idiomas dibujado en la imagen */
+    show=true}}
+  hero.style.display=show?'block':'none';
+  titles(show)
+ }catch(e){}}
+setInterval(lay,400);
+addEventListener('resize',lay);
+})();
+
