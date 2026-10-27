@@ -1678,3 +1678,113 @@ $('nRk').onclick=async()=>{au();SFX.click();
 
 ui();setInterval(ui,700);
 })();
+
+
+/* ===== D.M.R v37: dificultad por rango · scroll · perfil sin scroll/zoom · moneda · ranking ===== */
+(function(){
+if(window.__dmr37)return;window.__dmr37=1;
+const $$=(s,r)=>[...(r||document).querySelectorAll(s)];
+
+/* ---------- CSS ---------- */
+document.head.insertAdjacentHTML('beforeend',`<style>
+/* scroll en rangos, ventanas, misiones, ranking */
+.o36,.o32,.mo36 .mb,.mo32 .mb,#msn,#ach,#rnk,#shp,#rk37{overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.o36,.o36 *,.o32,.o32 *,.mo36,.mo36 *,.mo32,.mo32 *,#rk37,#rk37 *,#msn,#msn *,#ach,#ach *,#rnk,#rnk *{touch-action:pan-y!important}
+#bnext{display:none!important}
+/* perfil completo, sin scroll y sin zoom */
+#pfp{overflow:hidden!important}
+#pfp,#pfp *{touch-action:none!important}
+#pfp #cn,#pfp #upF{touch-action:auto!important}
+#pfp .panel{position:absolute!important;left:50%;top:50%;margin:0!important;width:min(94vw,400px)!important;max-width:none!important;max-height:none!important;transform:translate(-50%,-50%);transform-origin:center center}
+/* moneda */
+.dc{display:inline-block;width:1.15em;height:1.15em;vertical-align:-.22em;margin-right:.3em;border-radius:50%;position:relative;flex:none;
+ background:radial-gradient(circle at 35% 30%,#fff6b0,#ffc400 45%,#b87400);
+ box-shadow:inset 0 0 0 .09em #ffe27a,inset 0 0 0 .16em #a86a00,0 0 7px #ffc40099;animation:dc37 3s ease-in-out infinite}
+.dc::after{content:"D";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 .68em/1 Arial,sans-serif;color:#7a4a00;text-shadow:0 1px 0 #ffe9a0}
+@keyframes dc37{50%{filter:brightness(1.25) drop-shadow(0 0 4px #ffd400)}}
+/* ranking */
+#rk37{position:fixed;inset:0;z-index:44;color:#fff;font-family:Roboto,system-ui,sans-serif;background:radial-gradient(70% 35% at 0 0,rgba(40,80,255,.4),transparent),radial-gradient(70% 35% at 100% 100%,rgba(255,40,70,.3),transparent),#05061f}
+#rk37 .w37{max-width:520px;margin:0 auto;padding:max(12px,env(safe-area-inset-top)) 12px 26px}
+#rk37 .h37{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+#rk37 .h37 b{flex:1;text-align:center;letter-spacing:4px;font-size:16px;text-shadow:0 0 12px #3b6bff}
+#rk37 .h37 button{width:38px;height:38px;border-radius:50%;border:1.5px solid #3b6bff;background:#080e32;color:#fff;font-size:20px}
+#rk37 .r37{display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:6px;border:1px solid #2a3a80;border-radius:12px;background:rgba(8,14,52,.85)}
+#rk37 .r37.me{border-color:#ffd21f;background:rgba(80,60,0,.4)}
+#rk37 .r37 .p{width:28px;text-align:center;font-weight:900}
+#rk37 .r37 .i{flex:1;min-width:0}
+#rk37 .r37 .i b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rk37 .r37 .i small{font-size:10px;color:#b9c4ee}
+#rk37 .r37 em{font-style:normal;font-weight:800;font-size:12px;color:#ffd21f;white-space:nowrap}
+</style>`);
+
+/* ---------- 1) SIN ZOOM ---------- */
+['gesturestart','gesturechange','gestureend'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault()));
+document.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault()},{passive:false});
+document.addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault()},{passive:false});
+
+/* ---------- 2) DIFICULTAD DEL BOT SEGÚN TU RANGO ---------- */
+const TIERS=[100,120,150,180,220,260,320];
+function rpNow(){try{const s=JSON.parse(localStorage.getItem('dmr36_'+((prof&&prof.id)||'guest'))||'{}');return +s.rp||0}catch(e){return 0}}
+function rankIdx(rp){let c=0;for(let t=0;t<7;t++){const n=TIERS[t]*4;if(rp<c+n)return t*4+Math.floor((rp-c)/TIERS[t]);c+=n}return 28}
+const rankDiff=()=>{const i=rankIdx(rpNow());return i>=28?100:Math.max(1,Math.min(99,Math.round(1+i*3.4)))};
+let mt='rank',td='m';
+const _LV=LV;LV=function(L){const c=_LV(L);c.ev=null;return c};   /* sin eventos raros por nivel */
+const _ng=newGame;
+newGame=function(t){if(!t)selLv=(mt==='train')?({e:6,m:38,h:72}[td]||38):rankDiff();return _ng.apply(this,arguments)};
+const et=$('et');
+new MutationObserver(()=>{const s=et.textContent,n=s.replace(/¡NIVEL \d+ SUPERADO!/,'¡VICTORIA!').replace(/PERDISTE \(NIVEL \d+\)/,'DERROTA');if(n!==s)et.textContent=n}).observe(et,{childList:true,characterData:true,subtree:true});
+
+/* ---------- 3) RANKING: ve a todos los jugadores ---------- */
+const RN=['BRONCE','PLATA','ORO','PLATINO','DIAMANTE','MAESTRO','ÉLITE'],RI=['🥉','🥈','🥇','💠','💎','🔮','🔥'],RM=['I','II','III','IV'];
+const rname=rp=>{const i=rankIdx(rp);return i>=28?['👑','LEYENDA']:[RI[i>>2],RN[i>>2]+' '+RM[i&3]]};
+async function openRank(){
+ const old=$('rk37');if(old)old.remove();
+ const o=document.createElement('div');o.id='rk37';
+ o.innerHTML='<div class="w37"><div class="h37"><button type="button" id="rk37x">‹</button><b>🏆 RANKING</b><span style="width:38px"></span></div><div id="rk37l"><div class="pst">Cargando…</div></div></div>';
+ document.body.appendChild(o);
+ $('rk37x').onclick=()=>{SFX.click();o.remove()};
+ const L=$('rk37l');
+ try{
+  if(!fb||!ME||!SY){L.innerHTML='<div class="pst">Entra con tu cuenta para ver el ranking</div>';return}
+  const s=await FS.getDocs(FS.query(FS.collection(fb.db,'players'),FS.orderBy('xp','desc'),FS.limit(100)));
+  const a=[];s.forEach(d=>{const x=d.data();if(x&&x.name&&!x.hidden)a.push(x)});
+  const mine=rpNow();a.forEach(d=>{if(d.id===prof.id)d.rp=mine;d.rp=+d.rp||0});
+  if(!a.some(d=>d.id===prof.id))a.push({id:prof.id,name:prof.name,xp:prof.xp||0,rp:mine});
+  a.sort((p,q)=>q.rp-p.rp||(q.xp||0)-(p.xp||0));
+  L.innerHTML=a.map((d,i)=>{const r=rname(d.rp),lv=Math.min(100,Math.floor((d.xp||0)/XP_PER_LV)+1);
+   return '<div class="r37'+(d.id===prof.id?' me':'')+'" data-i="'+i+'"><span class="p">'+(['🥇','🥈','🥉'][i]||i+1)+'</span><span style="font-size:22px">'+r[0]+'</span><div class="i"><b>'+esc(d.name)+(d.ver?' '+VF:'')+'</b><small>'+r[1]+' · NIVEL '+lv+'</small></div><em>'+d.rp+' PTS</em></div>'}).join('')||'<div class="pst">Aún no hay jugadores</div>';
+  $$('#rk37l .r37').forEach(e=>e.onclick=()=>{SFX.click();const d=a[+e.dataset.i];if(d&&d.id)openPv(d.id)})
+ }catch(e){L.innerHTML='<div class="pst">'+esc(errEs(e))+'</div>'}}
+
+/* clics (antes que el v36) */
+document.addEventListener('click',e=>{
+ const t=e.target;if(!t||!t.closest)return;
+ if(t.closest('#m35 [data-a="rk"]')){e.stopImmediatePropagation();e.preventDefault();try{au();SFX.click()}catch(x){}openRank();return}
+ if(t.closest('#m35 [data-a="play"]')){mt='rank';return}
+ const d=t.closest('.mo36 [data-d]');if(d&&d.dataset.d!=='x'){mt='train';td=d.dataset.d}
+},true);
+
+/* ---------- 4) PERFIL: se ajusta a la pantalla ---------- */
+const pf=$('pfp');
+function fit(){const p=pf.querySelector('.panel');if(!p||pf.classList.contains('hide'))return;
+ if(document.activeElement&&document.activeElement.tagName==='INPUT')return;
+ p.style.transform='translate(-50%,-50%)';
+ const s=Math.min(1,(innerHeight-10)/p.offsetHeight,(innerWidth-10)/p.offsetWidth);
+ p.style.transform='translate(-50%,-50%) scale('+s+')'}
+new MutationObserver(()=>setTimeout(fit,30)).observe(pf,{attributes:true,attributeFilter:['class'],subtree:true,childList:true});
+addEventListener('resize',fit);
+
+/* ---------- 5) MONEDA: sin la palabra DOP, con diseño ---------- */
+function coinize(){
+ const chip=document.querySelector('#h36 .chip:not(.gm)');
+ if(chip&&!chip.dataset.c37){chip.dataset.c37='1';const n=[...chip.childNodes].find(x=>x.nodeType===3&&x.nodeValue.includes('🪙'));if(n){const i=document.createElement('i');i.className='dc';chip.replaceChild(i,n)}}
+ const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentNode;
+  if(!p||/^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION)$/.test(p.nodeName)||(p.closest&&p.closest('#menu'))||!/\bDOP\s*\d/.test(n.nodeValue))return NodeFilter.FILTER_REJECT;return NodeFilter.FILTER_ACCEPT}});
+ const L=[];let n;while((n=w.nextNode()))L.push(n);
+ L.forEach(n=>{const f=document.createDocumentFragment();
+  n.nodeValue.split(/\bDOP\s*(?=\d)/).forEach((s,i)=>{if(i){const c=document.createElement('i');c.className='dc';f.appendChild(c)}if(s)f.appendChild(document.createTextNode(s))});
+  n.parentNode.replaceChild(f,n)})}
+let tm=0;
+new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(coinize,120)}).observe(document.body,{childList:true,subtree:true,characterData:true});
+coinize();
+})();
