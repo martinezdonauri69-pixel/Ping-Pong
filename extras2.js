@@ -1788,3 +1788,86 @@ let tm=0;
 new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(coinize,120)}).observe(document.body,{childList:true,subtree:true,characterData:true});
 coinize();
 })();
+
+
+/* ===== D.M.R v35: scroll de rangos · sin zoom · lobby ajustado a la pantalla · JUGAR clasificatoria con puntos de rango ===== */
+(function(){
+if(window.__dmr35)return;window.__dmr35=1;
+const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toUpperCase();
+
+/* 1) CAUSA DEL SCROLL ROTO: tu CSS base tiene "touch-action:none" en todo. Fuera de la partida se cambia a "solo desplazar" (sin zoom). */
+document.head.insertAdjacentHTML('beforeend',`<style>
+html,body{overscroll-behavior:none}
+body:not(.play35) *:not([style*="touch-action"]){touch-action:pan-x pan-y!important}
+body:not(.play35) input[type=range]{touch-action:none!important}
+.scr35{overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+</style>`);
+
+/* 2) SIN ZOOM (fuera de la partida, para no romper el modo 2 jugadores con dos dedos) */
+try{const v=document.querySelector('meta[name=viewport]');if(v)v.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover')}catch(e){}
+['gesturestart','gesturechange'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault()));
+document.addEventListener('touchmove',e=>{if(mode!=='play'&&e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});
+document.addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault()},{passive:false});
+
+/* 3) PANTALLA DE RANGOS: que se pueda subir y bajar */
+function rankScr(){
+ const e=[...document.querySelectorAll('h1,h2,h3,div,span,b')].find(x=>!x.children.length&&norm(x.textContent)==='SISTEMA DE RANGOS');
+ if(!e)return;
+ let c=e,best=null;
+ for(let i=0;i<8&&c;i++,c=c.parentElement){
+  const cs=getComputedStyle(c);
+  if((cs.position==='fixed'||cs.position==='absolute')&&c.offsetHeight>=innerHeight*.8){best=c;break}}
+ if(!best)return;
+ best.classList.add('scr35');best.style.maxHeight='100dvh'}
+
+/* 4) LOBBY: si no cabe en la pantalla, se reduce todo para verlo sin subir */
+let fz=1;
+function fit(){
+ const m=$('menu');if(!m||m.classList.contains('hide')||mode==='play')return;
+ let sc=null;
+ const cand=[m,...m.querySelectorAll(':scope > *, :scope > * > *')];
+ for(const el of cand){const cs=getComputedStyle(el);
+  if((cs.overflowY==='auto'||cs.overflowY==='scroll')&&el.scrollHeight>el.clientHeight+6){sc=el;break}}
+ if(!sc)return;
+ const r=sc.clientHeight/sc.scrollHeight;
+ fz=Math.max(.62,Math.min(1,fz*r));
+ [...sc.children].forEach(k=>{const p=getComputedStyle(k).position;if(p!=='fixed'&&p!=='absolute')k.style.zoom=fz})}
+addEventListener('resize',()=>{fz=1;const m=$('menu');if(m)m.querySelectorAll('*').forEach(k=>{if(k.style.zoom)k.style.zoom=''})});
+
+/* 5) JUGAR (clasificatoria): ya no sale "Próximamente", empieza una partida y da puntos de rango */
+let rk=false;
+function rkKey(){for(const k of Object.keys(prof)){if(typeof prof[k]==='number'&&/^(rp|rankpts|rankpoints|rank_pts|puntosrango|rating|elo|mmr)$/i.test(k))return k}return 'rp'}
+function startRanked(){
+ try{au()}catch(e){}
+ try{SFX.click()}catch(e){}
+ const pts=+prof[rkKey()]||0;
+ selLv=Math.min(100,1+Math.floor(pts/100)*3);        /* la dificultad sube con tu rango */
+ rk=true;
+ try{paintGrid()}catch(e){}
+ try{$('menu').classList.add('hide')}catch(e){}
+ newGame(false)}
+document.addEventListener('click',e=>{
+ let c=e.target;
+ for(let i=0;i<5&&c&&c!==document.body;i++,c=c.parentElement){
+  const t=norm(c.textContent);
+  if(t.length<90&&/JUGAR/.test(t)&&/CLASIFICATORIA/.test(t)&&!/JUGADORES/.test(t)){
+   e.stopImmediatePropagation();e.preventDefault();startRanked();return}}
+},true);
+function award(win){
+ const k=rkKey(),old=+prof[k]||0,d=win?25:-10,n=Math.max(0,Math.min(5000,old+d));
+ prof[k]=n;
+ try{saveP()}catch(e){}
+ try{if(ME&&fb&&SY&&prof.id){const o={};o[k]=n;FS.setDoc(FS.doc(fb.db,'players',prof.id),o,{merge:true}).catch(()=>{})}}catch(e){}
+ try{const x=$('exp');if(x)x.textContent+=' · '+(d>0?'+':'')+d+' PTS DE RANGO'}catch(e){}
+ try{toast(win?'🏆 +25 puntos de rango · total '+n:'−10 puntos de rango · total '+n)}catch(e){}
+ ['renderRank','updRank','paintRank','renderMenu','refreshMenu','updMenu','paintMenu','paintLobby'].forEach(f=>{try{if(typeof window[f]==='function')window[f]()}catch(e){}})}
+let pm=mode;
+setInterval(()=>{
+ const m=mode;
+ document.body.classList.toggle('play35',m==='play');
+ if(pm==='play'&&m==='over'&&rk&&!two){award(sc[0]>sc[1]);rk=false}
+ if(m!=='play'&&m!=='over')rk=false;
+ pm=m},100);
+
+setInterval(()=>{try{fit();rankScr()}catch(e){}},800);
+})();
