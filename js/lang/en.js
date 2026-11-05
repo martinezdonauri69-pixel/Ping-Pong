@@ -1,0 +1,70 @@
+/* English */
+export default {
+  // general
+  ok: "OK", cancel: "Cancel", close: "Close", continue: "Continue", loading: "Loading…", empty: "Empty", search_sub: "Search…",
+  language: "Language", settings: "Settings", inbox: "Inbox", profile: "Profile", account: "Account", guest: "Guest",
+  tap_start: "TAP TO PLAY", lv: "Level", rank: "Rank", ranks: "Ranks", division: "division",
+  err_webgl: "Your phone doesn't support 3D graphics (WebGL).",
+  // home
+  play: "PLAY", play_sub: "Ranked match", tl_train: "Practice", tl_local: "2 Players", tl_online: "Online", tl_shop: "Shop",
+  tl_missions: "Missions", tl_daily: "Daily gift", tl_ranking: "Ranking", tl_friends: "Friends", tl_ach: "Achievements", tl_admin: "Admin",
+  train_sub: "Play without risking your rank points. Choose the difficulty:", bot_easy: "Easy", bot_mid: "Medium", bot_hard: "Hard",
+  online_sub: "Play against another person on their phone.", quick_match: "Find opponent", invite_friend: "Invite a friend",
+  // settings
+  sound: "Sound", music: "Music", sfx: "Effects", brightness: "Brightness", vibration: "Vibration", hq: "High graphics (shadows)", theme: "Color theme",
+  th_0: "Fire and ice", th_1: "Emerald", th_2: "Neon", th_3: "Solar", replay_tuto: "Watch the tutorial again",
+  // ranks
+  rank_0: "Bronze", rank_1: "Silver", rank_2: "Gold", rank_3: "Platinum", rank_4: "Diamond", rank_5: "Master", rank_6: "Grandmaster", rank_7: "LEGEND",
+  rank_how: "Win ranked matches to move up in rank. If you lose, you lose only a few points. Each rank has 4 divisions.",
+  rank_up: "RANK UP!", rank_board: "World ranking",
+  // profile / account
+  avatar: "Avatar", card: "Card", unlock_lv: "Unlocks at level {n}",
+  card_0: "Classic", card_1: "Neon", card_2: "Galaxy", card_3: "Fire", card_4: "Ice", card_5: "Jungle", card_6: "Gold", card_7: "Ocean", card_8: "Volcano", card_9: "Crystal", card_10: "Legend",
+  guest_warn: "You're playing as a guest: your progress is only saved on this phone. Create an account to save it and play online.",
+  login: "Log in", register: "Sign up", logout: "Log out", logout_q: "Log out of your account?", logged_out: "Logged out",
+  username: "Username", password: "Password", email: "Email", reg_note: "Your email is only used to recover your account.",
+  welcome_n: "Welcome, {n}!", need_account: "You need an account for this", ID: "ID",
+  err_unknown: "Something went wrong. Try again.", err_net: "No connection to the server", err_perm: "You don't have permission to do this",
+  err_bad_login: "Wrong username or password", err_pass_short: "Password must be at least 6 characters", err_many: "Too many attempts. Wait a moment.",
+  err_name_fmt: "Name must be 3-16 letters, numbers or _", err_name_taken: "That name is already taken", err_email: "Invalid email", err_email_used: "That email already has an account",
+  err_device: "An account was already created on this device", err_id: "Invalid ID", err_no_profile: "Profile not found",
+  banned_perm: "Account permanently suspended. Reason: {r}", banned_temp: "Account suspended until {d}. Reason: {r}",
+  // match
+  ranked: "Ranked", rival: "Opponent", player_n: "Player {n}", pause: "Pause", resume: "Resume", quit: "Quit", quit_warn: "If you quit a ranked match, it counts as a loss.",
+  quit_done: "Match abandoned", victory: "VICTORY!", defeat: "DEFEAT", play_again: "Again", go: "GO!", shield_used: "Shield used", online_pause: "Pause not available online",
+  ab_turbo: "TURBO!", ab_fuego: "FIRE!", ab_hielo: "ICE!", ab_curva: "CURVE!", ab_gigante: "GIANT!", ab_encoger: "SHRINK!", ab_fantasma: "GHOST!",
+  // missions, achievements, daily
+  msn_title: "Daily missions", msn_sub: "Complete missions and claim coins.", msn_reset: "They refresh every day.",
+  msn_play: "Play {n} matches", msn_win: "Win {n} matches", msn_points: "Score {n} points", msn_orbs: "Collect {n} orbs", msn_rally: "Make a rally of {n} hits",
+  ach_title: "Achievements", ach_sub: "{a} of {b} earned",
+  ach_win: "Win {n} matches", ach_play: "Play {n} matches", ach_streak: "Streak of {n} wins", ach_rank: "Reach {r}", ach_lvl: "Reach level {n}",
+  ach_buy: "Buy {n} items", ach_shut: "Win without conceding a point", ach_hard: "Win {n} hard matches",
+  daily_title: "Daily gift", daily_sub: "Log in every day and earn more.", daily_claim: "Claim", daily_done: "Come back tomorrow", day_n: "Day {n}",
+  // shop
+  shop_title: "Shop", cat_pad: "Paddles", cat_bl: "Balls", cat_tb: "Tables", cat_fx: "Effects", cat_pw: "Power-ups",
+  buy: "Buy", buy_q: "Buy for {p}?", equip: "Equip", equipped: "Equipped", you_have: "You have: {n}",
+  it_pad_red: "Fire red", it_pad_cyan: "Cyan", it_pad_green: "Green", it_pad_gold: "Golden", it_pad_ice: "Ice", it_pad_lime: "Lime", it_pad_orange: "Orange", it_pad_pink: "Pink", it_pad_plasma: "Plasma", it_pad_royal: "Royal", it_pad_violet: "Violet", it_pad_white: "White",
+  it_bl_white: "Classic", it_bl_orange: "Orange", it_bl_diamond: "Diamond", it_bl_fire: "Fire", it_bl_heart: "Heart", it_bl_ice: "Ice", it_bl_neon: "Neon", it_bl_planet: "Planet", it_bl_rainbow: "Rainbow", it_bl_star: "Star", it_bl_sun: "Sun", it_bl_void: "Void",
+  it_tb_blue: "Classic blue", it_tb_black: "Black", it_tb_candy: "Candy", it_tb_galaxy: "Galaxy", it_tb_gold: "Golden", it_tb_green: "Green", it_tb_lava: "Lava", it_tb_ocean: "Ocean", it_tb_red: "Red", it_tb_violet: "Violet",
+  it_fx_std: "Standard", it_fx_fire: "Fire", it_fx_galaxy: "Galaxy", it_fx_gold: "Gold", it_fx_ice: "Ice", it_fx_rainbow: "Rainbow", it_fx_royal: "Royal", it_fx_toxic: "Toxic",
+  it_pw_shield: "Shield", it_pw_shield_d: "If you lose a ranked match, you don't lose points.", it_pw_boost: "Boost", it_pw_boost_d: "Your next ranked win gives ×1.5 points.",
+  // social
+  friends: "Friends", add_friend: "Add friend", friend_id: "Friend's ID", requests: "Requests", req_sent: "Request sent", no_friends: "You have no friends yet", no_players: "No players", no_players_d: "There's nobody in the ranking yet.",
+  not_found: "Not found", give_star: "Give star", msg: "Message", report: "Report", rep_sent: "Report sent", announce: "Notice",
+  // online
+  invite: "Invitation", invite_q: "{n} invites you to play. Accept?", invite_no: "{n} is not available", invite_expired: "The invitation expired", accept: "Accept", reject: "Decline",
+  connecting: "Connecting…", joining: "Joining {n}'s match…", waiting_for: "Waiting for {n}…", searching: "Searching for opponent…", busy: "You're already in a connection",
+  online_fail: "Couldn't connect. Try again.", online_nosup: "Your browser doesn't support online matches",
+  // tutorial
+  tu_welcome_t: "Welcome!", tu_welcome: "I'll teach you to play in a minute. Only tap what I point out.",
+  tu_coins_t: "Your coins", tu_coins: "Here you see your $ coins. You earn them by playing matches and completing missions.",
+  tu_rank_t: "Your rank", tu_rank: "This is your rank. By winning ranked matches you climb from Bronze to LEGEND.",
+  tu_play_t: "Let's play!", tu_play: "Tap the PLAY button to do a practice match.",
+  tu_move_t: "Move your paddle", tu_move: "Slide your finger across the screen to move your paddle.",
+  tu_hit_t: "Hit the ball", tu_hit: "Place your paddle in the ball's path to return it.",
+  tu_orb_t: "Power orbs", tu_orb: "If you touch a glowing orb, the ball gets a special power!",
+  tu_win_t: "Win points", tu_win: "If your opponent can't return the ball, you win the point. First to reach 11 wins.",
+  tu_done_t: "Well done!", tu_done: "You know how to play now. On to the menu…",
+  tu_shop_t: "Your gift: 50 $!", tu_shop: "Coins are spent in the shop: paddles, balls and tables. Tap the shop to finish.",
+  tu_next: "Next", tu_skip: "Skip",
+};

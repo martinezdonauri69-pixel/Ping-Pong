@@ -1,0 +1,70 @@
+/* Español · idioma base (si falta una clave en otro idioma, se usa esta) */
+export default {
+  // general
+  ok: 'OK', cancel: 'Cancelar', close: 'Cerrar', continue: 'Continuar', loading: 'Cargando…', empty: 'Vacío', search_sub: 'Buscar…',
+  language: 'Idioma', settings: 'Ajustes', inbox: 'Buzón', profile: 'Perfil', account: 'Cuenta', guest: 'Invitado',
+  tap_start: 'TOCA PARA JUGAR', lv: 'Nivel', rank: 'Rango', ranks: 'Rangos', division: 'división',
+  err_webgl: 'Tu teléfono no soporta gráficos 3D (WebGL).',
+  // portada
+  play: 'JUGAR', play_sub: 'Partida clasificatoria', tl_train: 'Práctica', tl_local: '2 Jugadores', tl_online: 'En línea', tl_shop: 'Tienda',
+  tl_missions: 'Misiones', tl_daily: 'Regalo diario', tl_ranking: 'Ranking', tl_friends: 'Amigos', tl_ach: 'Logros', tl_admin: 'Admin',
+  train_sub: 'Juega sin arriesgar tus puntos de rango. Elige la dificultad:', bot_easy: 'Fácil', bot_mid: 'Medio', bot_hard: 'Difícil',
+  online_sub: 'Juega contra otra persona en su teléfono.', quick_match: 'Buscar rival', invite_friend: 'Invitar a un amigo',
+  // ajustes
+  sound: 'Sonido', music: 'Música', sfx: 'Efectos', brightness: 'Brillo', vibration: 'Vibración', hq: 'Gráficos altos (sombras)', theme: 'Tema de color',
+  th_0: 'Fuego y hielo', th_1: 'Esmeralda', th_2: 'Neón', th_3: 'Solar', replay_tuto: 'Ver el tutorial otra vez',
+  // rangos
+  rank_0: 'Bronce', rank_1: 'Plata', rank_2: 'Oro', rank_3: 'Platino', rank_4: 'Diamante', rank_5: 'Maestro', rank_6: 'Gran Maestro', rank_7: 'LEYENDA',
+  rank_how: 'Gana partidas clasificatorias para subir de rango. Si pierdes, pierdes pocos puntos. Cada rango tiene 4 divisiones.',
+  rank_up: '¡SUBES DE RANGO!', rank_board: 'Ranking mundial',
+  // perfil / cuenta
+  avatar: 'Avatar', card: 'Tarjeta', unlock_lv: 'Se desbloquea en el nivel {n}',
+  card_0: 'Clásica', card_1: 'Neón', card_2: 'Galaxia', card_3: 'Fuego', card_4: 'Hielo', card_5: 'Selva', card_6: 'Oro', card_7: 'Océano', card_8: 'Volcán', card_9: 'Cristal', card_10: 'Leyenda',
+  guest_warn: 'Estás jugando como invitado: tu progreso solo se guarda en este teléfono. Crea una cuenta para guardarlo y jugar en línea.',
+  login: 'Entrar', register: 'Crear cuenta', logout: 'Salir', logout_q: '¿Cerrar tu sesión?', logged_out: 'Sesión cerrada',
+  username: 'Nombre de usuario', password: 'Contraseña', email: 'Correo electrónico', reg_note: 'Tu correo solo se usa para recuperar la cuenta.',
+  welcome_n: '¡Bienvenido, {n}!', need_account: 'Necesitas una cuenta para esto', ID: 'ID',
+  err_unknown: 'Algo salió mal. Inténtalo otra vez.', err_net: 'Sin conexión con el servidor', err_perm: 'No tienes permiso para hacer esto',
+  err_bad_login: 'Usuario o contraseña incorrectos', err_pass_short: 'La contraseña debe tener al menos 6 caracteres', err_many: 'Demasiados intentos. Espera un momento.',
+  err_name_fmt: 'El nombre debe tener 3-16 letras, números o _', err_name_taken: 'Ese nombre ya está en uso', err_email: 'Correo no válido', err_email_used: 'Ese correo ya tiene una cuenta',
+  err_device: 'Ya se creó una cuenta en este dispositivo', err_id: 'ID no válido', err_no_profile: 'No se encontró el perfil',
+  banned_perm: 'Cuenta suspendida de forma permanente. Motivo: {r}', banned_temp: 'Cuenta suspendida hasta {d}. Motivo: {r}',
+  // partida
+  ranked: 'Clasificatoria', rival: 'Rival', player_n: 'Jugador {n}', pause: 'Pausa', resume: 'Seguir', quit: 'Salir', quit_warn: 'Si sales de una partida clasificatoria, cuenta como derrota.',
+  quit_done: 'Partida abandonada', victory: '¡VICTORIA!', defeat: 'DERROTA', play_again: 'Otra vez', go: '¡YA!', shield_used: 'Escudo usado', online_pause: 'Pausa no disponible en línea',
+  ab_turbo: '¡TURBO!', ab_fuego: '¡FUEGO!', ab_hielo: '¡HIELO!', ab_curva: '¡CURVA!', ab_gigante: '¡GIGANTE!', ab_encoger: '¡ENCOGER!', ab_fantasma: '¡FANTASMA!',
+  // misiones, logros, diario
+  msn_title: 'Misiones del día', msn_sub: 'Completa misiones y reclama monedas.', msn_reset: 'Se renuevan cada día.',
+  msn_play: 'Juega {n} partidas', msn_win: 'Gana {n} partidas', msn_points: 'Anota {n} puntos', msn_orbs: 'Recoge {n} orbes', msn_rally: 'Haz un peloteo de {n} golpes',
+  ach_title: 'Logros', ach_sub: '{a} de {b} conseguidos',
+  ach_win: 'Gana {n} partidas', ach_play: 'Juega {n} partidas', ach_streak: 'Racha de {n} victorias', ach_rank: 'Llega a {r}', ach_lvl: 'Llega al nivel {n}',
+  ach_buy: 'Compra {n} objetos', ach_shut: 'Gana sin recibir puntos', ach_hard: 'Gana {n} partidas difíciles',
+  daily_title: 'Regalo diario', daily_sub: 'Entra todos los días y gana más.', daily_claim: 'Reclamar', daily_done: 'Vuelve mañana', day_n: 'Día {n}',
+  // tienda
+  shop_title: 'Tienda', cat_pad: 'Paletas', cat_bl: 'Pelotas', cat_tb: 'Mesas', cat_fx: 'Efectos', cat_pw: 'Poderes',
+  buy: 'Comprar', buy_q: '¿Comprar por {p}?', equip: 'Equipar', equipped: 'Equipado', you_have: 'Tienes: {n}',
+  it_pad_red: 'Rojo fuego', it_pad_cyan: 'Cian', it_pad_green: 'Verde', it_pad_gold: 'Dorada', it_pad_ice: 'Hielo', it_pad_lime: 'Lima', it_pad_orange: 'Naranja', it_pad_pink: 'Rosa', it_pad_plasma: 'Plasma', it_pad_royal: 'Real', it_pad_violet: 'Violeta', it_pad_white: 'Blanca',
+  it_bl_white: 'Clásica', it_bl_orange: 'Naranja', it_bl_diamond: 'Diamante', it_bl_fire: 'Fuego', it_bl_heart: 'Corazón', it_bl_ice: 'Hielo', it_bl_neon: 'Neón', it_bl_planet: 'Planeta', it_bl_rainbow: 'Arcoíris', it_bl_star: 'Estrella', it_bl_sun: 'Sol', it_bl_void: 'Vacío',
+  it_tb_blue: 'Azul clásica', it_tb_black: 'Negra', it_tb_candy: 'Caramelo', it_tb_galaxy: 'Galaxia', it_tb_gold: 'Dorada', it_tb_green: 'Verde', it_tb_lava: 'Lava', it_tb_ocean: 'Océano', it_tb_red: 'Roja', it_tb_violet: 'Violeta',
+  it_fx_std: 'Estándar', it_fx_fire: 'Fuego', it_fx_galaxy: 'Galaxia', it_fx_gold: 'Oro', it_fx_ice: 'Hielo', it_fx_rainbow: 'Arcoíris', it_fx_royal: 'Real', it_fx_toxic: 'Tóxico',
+  it_pw_shield: 'Escudo', it_pw_shield_d: 'Si pierdes una partida clasificatoria, no pierdes puntos.', it_pw_boost: 'Impulso', it_pw_boost_d: 'Tu próxima victoria clasificatoria da ×1.5 puntos.',
+  // social
+  friends: 'Amigos', add_friend: 'Añadir amigo', friend_id: 'ID del amigo', requests: 'Solicitudes', req_sent: 'Solicitud enviada', no_friends: 'Aún no tienes amigos', no_players: 'No hay jugadores', no_players_d: 'Todavía no hay nadie en el ranking.',
+  not_found: 'No encontrado', give_star: 'Dar estrella', msg: 'Mensaje', report: 'Reportar', rep_sent: 'Reporte enviado', announce: 'Aviso',
+  // en línea
+  invite: 'Invitación', invite_q: '{n} te invita a jugar. ¿Aceptas?', invite_no: '{n} no está disponible', invite_expired: 'La invitación caducó', accept: 'Aceptar', reject: 'Rechazar',
+  connecting: 'Conectando…', joining: 'Entrando a la partida de {n}…', waiting_for: 'Esperando a {n}…', searching: 'Buscando rival…', busy: 'Ya estás en una conexión',
+  online_fail: 'No se pudo conectar. Inténtalo otra vez.', online_nosup: 'Tu navegador no soporta partidas en línea',
+  // tutorial
+  tu_welcome_t: '¡Bienvenido!', tu_welcome: 'Te enseño a jugar en un minuto. Toca solo lo que yo te señale.',
+  tu_coins_t: 'Tus monedas', tu_coins: 'Aquí ves tus monedas $. Las ganas jugando partidas y completando misiones.',
+  tu_rank_t: 'Tu rango', tu_rank: 'Aquí está tu rango. Ganando partidas clasificatorias subes de Bronce hasta LEYENDA.',
+  tu_play_t: '¡A jugar!', tu_play: 'Toca el botón JUGAR para hacer una práctica.',
+  tu_move_t: 'Mueve tu paleta', tu_move: "Desliza el dedo por la pantalla para mover tu paleta.",
+  tu_hit_t: 'Golpea la pelota', tu_hit: 'Coloca tu paleta en el camino de la pelota para devolverla.',
+  tu_orb_t: 'Orbes de poder', tu_orb: 'Si tocas un orbe brillante, ¡la pelota recibe un poder especial!',
+  tu_win_t: 'Gana puntos', tu_win: 'Si el rival no puede devolver la pelota, ganas el punto. Gana el primero en llegar a 11.',
+  tu_done_t: '¡Muy bien!', tu_done: 'Ya sabes jugar. Vamos al menú…',
+  tu_shop_t: '¡Tu regalo: 50 $!', tu_shop: 'Las monedas se gastan en la tienda: paletas, pelotas y mesas. Toca la tienda para terminar.',
+  tu_next: 'Siguiente', tu_skip: 'Saltar',
+};
