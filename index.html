@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#04061a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com 'wasm-unsafe-eval'; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.gstatic.com wss://*.firebaseio.com https://*.firebaseapp.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; media-src 'self' data: blob:; font-src 'self' data:; frame-src https://*.firebaseapp.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>D.M.R PING PONG</title>
+<link rel="icon" href="assets/logo-192.png">
+<link rel="apple-touch-icon" href="assets/logo-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/lobby.css">
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="app">
+  <div id="splash" class="scr">
+    <img class="lg" src="assets/logo.png" alt="D.M.R">
+    <h1>PING PONG</h1>
+    <button id="spGo" class="b3d green lg">▶</button>
+  </div>
+</div>
+<div id="toasts"></div>
+<div id="modals"></div>
+<div id="err"></div>
+<noscript>Activa JavaScript / Enable JavaScript</noscript>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
