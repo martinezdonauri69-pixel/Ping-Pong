@@ -67,4 +67,12 @@ export default {
   tu_done_t: '¡Muy bien!', tu_done: 'Ya sabes jugar. Vamos al menú…',
   tu_shop_t: '¡Tu regalo: 50 $!', tu_shop: 'Las monedas se gastan en la tienda: paletas, pelotas y mesas. Toca la tienda para terminar.',
   tu_next: 'Siguiente', tu_skip: 'Saltar',
+  draw: 'EMPATE',
+  time_up: '¡SE ACABÓ EL TIEMPO!',
+  rk_win: 'Ganar',
+  rk_draw: 'Empatar',
+  rk_lose4: 'Perder con 4 o más puntos',
+  rk_lose3: 'Perder con 3 o menos',
+  rk_quit: 'Rendirte ahora',
+  rk_safe: 'Ya llevas 5 o más puntos: si sales no pierdes nada.',
 };
