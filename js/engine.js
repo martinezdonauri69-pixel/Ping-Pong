@@ -11,9 +11,10 @@ const AK = Object.keys(ABIL);
 
 /* ---- velocidad y dificultad según el rango (L = 1..100) ---- */
 export function speedFor(L) {
-  if (L <= 1) return { base: 350, boost: 1.15 };
-  if (L <= 20) return { base: 430 + ((L - 2) / 18) * 50, boost: 1.2 };
-  const k = (L - 20) / 80; return { base: 480 + k * 80, boost: 1.2 + k * 0.15 };
+  /* pelota mas lenta en los rangos bajos y cada vez mas rapida al subir */
+  if (L <= 1) return { base: 300, boost: 1.1 };
+  if (L <= 20) return { base: 320 + ((L - 2) / 18) * 110, boost: 1.12 + ((L - 2) / 18) * 0.08 };
+  const k = (L - 20) / 80; return { base: 430 + k * 130, boost: 1.2 + k * 0.15 };
 }
 /* probabilidad de ganar una partida a 11 dado que ganas cada punto con probabilidad p */
 function matchWin(p) {
@@ -25,13 +26,13 @@ function matchWin(p) {
   };
   return f(0, 0);
 }
-const PBT = [[1, 5, .35, .40], [6, 10, .41, .45], [11, 20, .46, .52], [21, 30, .53, .59], [31, 40, .60, .65], [41, 50, .66, .71], [51, 60, .72, .77], [61, 70, .78, .82], [71, 80, .83, .87], [81, 90, .88, .92], [91, 100, .93, .97]];
+/* probabilidad de que el bot gane la partida: baja en Bronce/Plata y sube poco a poco hasta Leyenda */
+const PBT = [[1, 5, .06, .12], [6, 10, .13, .20], [11, 20, .21, .32], [21, 30, .33, .43], [31, 40, .44, .53], [41, 50, .54, .62], [51, 60, .63, .71], [61, 70, .72, .79], [71, 80, .80, .86], [81, 90, .87, .92], [91, 100, .93, .97]];
 const pbOf = (L) => { const r = PBT.find((q) => L >= q[0] && L <= q[1]) || PBT[PBT.length - 1]; return r[2] + (r[3] - r[2]) * (L - r[0]) / (r[1] - r[0]); };
 /* calidad del bot (0 = torpe, 1 = casi perfecto): se busca para que tengas la probabilidad de ganar de la tabla */
 export function botQuality(L) {
-  const pb = pbOf(L); let lo = 0.05, hi = 0.98;
-  for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (matchWin(m) < pb) lo = m; else hi = m; }
-  return clamp(((lo + hi) / 2 - 0.15) / 0.75, 0, 1);
+  /* sube de forma gradual: casi torpe en Bronce I y muy bueno solo en los rangos mas altos */
+  return clamp(0.92 * Math.pow((L - 1) / 99, 1.2), 0, 1);
 }
 
 const mkPaddle = () => ({ y: H / 2, ty: H / 2, h: 90, slow: 0, big: 0, small: 0 });
@@ -47,11 +48,13 @@ export function createMatch(opts) {
   };
   const keys = {};
   m.keys = keys;
+  /* error de punteria del bot: grande si es principiante, casi nulo si es de alto rango */
+  const aiE = (lk) => (Math.random() - 0.5) * 2 * (lk ? 8 + (1 - m.Q) * 45 : 80 + (1 - m.Q) * 60);
 
   m.serve = (d) => {
     const lk = Math.random() < m.Q;
     m.B = { x: W / 2, y: H / 2, vx: 0, vy: 0, sp: m.sp.base, d, last: d > 0 ? 0 : 1, lock: lk, wob: 0, gh: 0, hot: 0, hit: 0 };
-    m.aiErr = (Math.random() - 0.5) * 2 * (lk ? 8 : 80);
+    m.aiErr = aiE(lk);
     m.serveT = 1; m.orb = null; m.orbT = 3 + Math.random() * 2; m.ev.push({ k: 'serve', d });
   };
 
@@ -60,7 +63,7 @@ export function createMatch(opts) {
     B.sp = Math.min(B.sp * 1.04 + 6, 1000); B.vx = Math.cos(a) * B.sp * s; B.vy = Math.sin(a) * B.sp;
     B.x = i ? PX1 - BR : PX0 + BR; B.last = i; m.hits++;
     m.ev.push({ k: 'hit', i, x: B.x, y: B.y, sp: B.sp });
-    if (i === 0) m.aiErr = (Math.random() - 0.5) * 2 * (B.lock ? 8 : 80);
+    if (i === 0) m.aiErr = aiE(B.lock);
   };
 
   const ability = (k) => {
@@ -92,7 +95,7 @@ export function createMatch(opts) {
       p.h += ((p.big > 0 ? 135 : p.small > 0 ? 55 : 90) - p.h) * Math.min(1, dt * 8);
       const sl = p.slow > 0;
       if (i === 1 && m.mode === 'bot') {                          /* el bot */
-        let tg = H / 2; const lk = B.lock, sp = (lk ? 1000 : 330) * (sl ? 0.4 : 1);
+        let tg = H / 2; const lk = B.lock, sp = (lk ? 650 + m.Q * 350 : 200 + m.Q * 130) * (sl ? 0.4 : 1);
         if (B.vx > 0) {
           if (lk) { let y = B.y + B.vy * (PX1 - B.x) / B.vx; const per = 2 * (H - BR * 2), mm = (((y - BR) % per) + per) % per; y = BR + (mm <= H - BR * 2 ? mm : per - mm); tg = y + m.aiErr; }
           else tg = B.y + m.aiErr;
