@@ -1,0 +1,112 @@
+/* intro.js · intro animada con sonido: la pelota rebota entre dos paletas y se convierte en el logo.
+   Un toque la salta. Todo el sonido sale de audio.js (WebAudio). */
+import { sfx } from './audio.js';
+
+const T_HIT = [350, 1050, 1750];   /* golpes: izquierda, derecha, izquierda */
+const T_END = 2350;                /* la pelota llega al centro y se vuelve logo */
+const T_OUT = 4100;                /* empieza a desvanecerse */
+const ease = (x) => 1 - Math.pow(1 - x, 3);
+
+export function play() {
+  return new Promise((done) => {
+    const root = document.createElement('div'); root.id = 'intro';
+    const cv = document.createElement('canvas'); root.appendChild(cv);
+    const box = document.createElement('div'); box.className = 'box';
+    const logo = document.createElement('img'); logo.className = 'logo'; logo.src = 'assets/logo.png'; logo.alt = 'D.M.R';
+    const h1 = document.createElement('h1');
+    'PING PONG'.split('').forEach((ch, i) => {
+      const s = document.createElement('span'); s.textContent = ch === ' ' ? '' : ch;
+      s.className = ch === ' ' ? 'sp' : (i < 4 ? 'p' : 'q'); s.style.animationDelay = (i * 70) + 'ms'; h1.appendChild(s);
+    });
+    const bar = document.createElement('div'); bar.className = 'bar';
+    box.append(logo, h1, bar); root.appendChild(box); document.body.appendChild(root);
+    requestAnimationFrame(() => root.classList.add('on'));
+
+    const g = cv.getContext('2d'); let W = 0, H = 0, dpr = 1;
+    const size = () => { dpr = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0); };
+    size();
+
+    let ended = false, raf = 0; const timers = [];
+    const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+    const finish = () => {
+      if (ended) return; ended = true; cancelAnimationFrame(raf); timers.forEach(clearTimeout);
+      root.removeEventListener('pointerdown', finish); removeEventListener('resize', size);
+      root.classList.remove('on'); root.classList.add('off');
+      setTimeout(() => { root.remove(); done(); }, 460);
+    };
+    root.addEventListener('pointerdown', finish);
+    addEventListener('resize', size);
+
+    /* sonidos sincronizados */
+    at(T_HIT[0], () => sfx('ping')); at(T_HIT[1], () => sfx('pong')); at(T_HIT[2], () => sfx('ping'));
+    at(T_END - 150, () => sfx('whoosh')); at(T_END, () => sfx('impact'));
+    at(T_END + 450, () => sfx('go'));
+    at(T_END + 20, () => { logo.classList.add('in'); });
+    at(T_END + 300, () => { h1.classList.add('in'); bar.classList.add('in'); });
+    at(T_OUT, finish);
+
+    /* geometría */
+    const geo = () => {
+      const r = Math.max(9, Math.min(18, Math.min(W, H) * 0.028));
+      const yb = H * 0.52, pw = r * 1.1, ph = Math.max(70, H * 0.17);
+      const lx = W * 0.12, rx = W * 0.88;
+      const lr = logo.getBoundingClientRect();
+      return { r, yb, pw, ph, lx, rx, cx: lr.left + lr.width / 2 || W / 2, cy: lr.top + lr.height / 2 || H * 0.4 };
+    };
+    const trail = []; const rings = []; const hit = [0, 0]; let fired = [false, false, false];
+    const t0 = performance.now();
+
+    const frame = (now) => {
+      if (ended) return; raf = requestAnimationFrame(frame);
+      const t = now - t0, G = geo();
+      g.clearRect(0, 0, W, H);
+
+      /* red central tenue */
+      const na = Math.min(1, t / 300) * (t > T_END ? Math.max(0, 1 - (t - T_END) / 300) : 1);
+      g.save(); g.globalAlpha = 0.16 * na; g.strokeStyle = '#9fb4ff'; g.setLineDash([8, 10]); g.lineWidth = 2;
+      g.beginPath(); g.moveTo(W / 2, H * 0.2); g.lineTo(W / 2, H * 0.84); g.stroke(); g.restore();
+
+      /* paletas: entran deslizando y se apartan al final */
+      const pin = ease(Math.min(1, t / 320)), pout = t > T_END ? Math.max(0, 1 - (t - T_END) / 350) : 1;
+      const pa = pin * pout;
+      for (let i = 0; i < 2; i++) { hit[i] *= 0.88; }
+      const drawPad = (x, col, k) => {
+        const off = (1 - pin) * (k ? 60 : -60) + hit[k] * (k ? -10 : 10);
+        g.save(); g.globalAlpha = pa; g.fillStyle = col;
+        g.beginPath(); g.roundRect(x + off - G.pw / 2, G.yb - G.ph / 2, G.pw, G.ph, G.pw / 2); g.fill();
+        g.fillStyle = 'rgba(255,255,255,.18)'; g.beginPath(); g.roundRect(x + off - G.pw / 2 + 2, G.yb - G.ph / 2 + 6, G.pw * 0.35, G.ph - 12, 3); g.fill();
+        g.restore();
+      };
+      drawPad(G.lx, '#ff2d4f', 0); drawPad(G.rx, '#2f7bff', 1);
+
+      /* golpes: ondas suaves */
+      T_HIT.forEach((th, i) => {
+        if (!fired[i] && t >= th) { fired[i] = true; const side = i === 1 ? 1 : 0; hit[side] = 1; rings.push({ x: side ? G.rx : G.lx, y: G.yb, t: now, c: side ? '47,123,255' : '255,45,79' }); }
+      });
+      if (!fired[3] && t >= T_END) { fired[3] = true; rings.push({ x: G.cx, y: G.cy, t: now, c: '255,255,255', big: 1 }); }
+      for (let i = rings.length - 1; i >= 0; i--) {
+        const o = rings[i], k = (now - o.t) / (o.big ? 700 : 500); if (k >= 1) { rings.splice(i, 1); continue; }
+        g.strokeStyle = 'rgba(' + o.c + ',' + (0.4 * (1 - k)).toFixed(3) + ')'; g.lineWidth = 2;
+        g.beginPath(); g.arc(o.x, o.y, G.r + ease(k) * (o.big ? G.r * 7 : G.r * 4), 0, 7); g.stroke();
+      }
+
+      /* pelota */
+      let bx = null, by = 0;
+      const sx = G.lx + G.pw / 2 + G.r, ex = G.rx - G.pw / 2 - G.r, arc = H * 0.14;
+      if (t >= T_HIT[0] - 100 && t < T_END) {
+        if (t < T_HIT[1]) { const p = Math.max(0, (t - T_HIT[0]) / (T_HIT[1] - T_HIT[0])); bx = sx + (ex - sx) * p; by = G.yb - arc * Math.sin(Math.PI * p); }
+        else if (t < T_HIT[2]) { const p = (t - T_HIT[1]) / (T_HIT[2] - T_HIT[1]); bx = ex + (sx - ex) * p; by = G.yb - arc * Math.sin(Math.PI * p); }
+        else { const p = ease((t - T_HIT[2]) / (T_END - T_HIT[2])); bx = sx + (G.cx - sx) * p; by = G.yb + (G.cy - G.yb) * p - arc * 1.1 * Math.sin(Math.PI * p); }
+      }
+      if (bx !== null) {
+        trail.push({ x: bx, y: by }); if (trail.length > 14) trail.shift();
+        const side = t < T_HIT[1] ? '47,123,255' : '255,45,79';
+        trail.forEach((p, i) => { g.fillStyle = 'rgba(' + side + ',' + (0.2 * i / trail.length).toFixed(3) + ')'; g.beginPath(); g.arc(p.x, p.y, G.r * (0.35 + 0.55 * i / trail.length), 0, 7); g.fill(); });
+        const gr = g.createRadialGradient(bx - G.r * 0.3, by - G.r * 0.35, G.r * 0.1, bx, by, G.r);
+        gr.addColorStop(0, '#ffffff'); gr.addColorStop(1, '#e9ecf7');
+        g.fillStyle = gr; g.beginPath(); g.arc(bx, by, G.r, 0, 7); g.fill();
+      }
+    };
+    raf = requestAnimationFrame(frame);
+  });
+}
