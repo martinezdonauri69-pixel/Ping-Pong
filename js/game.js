@@ -19,7 +19,8 @@ export async function start(opts) {
   if (G) return;
   const mode = opts.mode, online = mode === 'online', guest = online && opts.role === 'g';
   const L = mode === 'ranked' ? rankDiff(P.rp) : mode === 'train' ? LEVEL_OF[opts.diff || 'mid'] : 40;
-  M = createMatch({ mode: mode === 'local' ? 'local' : online ? (guest ? 'guest' : 'host') : 'bot', L, win: 11 });
+  /* clasificatoria: primero a 7 puntos o, a los 60 s, gana quien tenga mas */
+  M = createMatch({ mode: mode === 'local' ? 'local' : online ? (guest ? 'guest' : 'host') : 'bot', L, win: mode === 'ranked' ? 7 : 11, limit: mode === 'ranked' ? 60 : 0, deuce: mode !== 'ranked' });
   const names = mode === 'local' ? [t('player_n', { n: 1 }), t('player_n', { n: 2 })]
     : online ? (guest ? [opts.opp.name, P.name] : [P.name, opts.opp.name]) : [P.name, mode === 'ranked' ? t('rival') : t('bot_' + (opts.diff || 'mid'))];
   G = { opts, mode, online, guest, names, L, rally: 0, maxRally: 0, orbs: 0, myPts: 0, ptr: {}, snap: null, snapT: 0, sendT: 0, inT: 0, ended: false, paused: false, t0: performance.now(), quit: false };
@@ -45,7 +46,7 @@ function buildHud(sideLeft) {
   h.innerHTML = '<div class="hud-top"><button class="b3d ghost ib3d" id="hPause" aria-label="' + esc(t('pause')) + '">❚❚</button>' +
     '<div class="score3d"><span class="nm">' + nm(li) + '</span><span class="n a" id="hs0">0</span><span class="sep">:</span><span class="n b" id="hs1">0</span><span class="nm">' + nm(ri) + '</span></div>' +
     '<div class="tag">' + (G.mode === 'ranked' ? '<span class="qtag">🏆 ' + esc(t('ranked')) + '</span>' : '') + '</div></div>' +
-    '<div id="cdown"></div><div id="fxtxt"></div><div id="hFps" class="fps">-- FPS</div>';
+    (G.mode === 'ranked' ? '<div id="hTime" class="gtime">1:00</div>' : '') + '<div id="cdown"></div><div id="fxtxt"></div><div id="hFps" class="fps">-- FPS</div>';
   $('app').appendChild(h); G.hud = h; G.sideLeft = sideLeft;
   $('hPause').onclick = () => { sfx('click'); pause(true); };
 }
@@ -93,7 +94,7 @@ function pause(on) {
   const s = document.createElement('div'); s.id = 'pause'; s.className = 'scr dim anim';
   s.innerHTML = '<div class="pnl" style="max-width:340px"><h2>' + esc(t('pause')) + '</h2>' + (G.online ? '<div class="muted c">' + esc(t('online_pause')) + '</div>' : '') +
     '<button class="b3d green lg block" id="pkResume">▶ ' + esc(t('resume')) + '</button><button class="b3d red block" id="pkQuit">🏳 ' + esc(t('quit')) + '</button>' +
-    (G.mode === 'ranked' ? '<div class="muted c">' + esc(t('quit_warn')) + '</div>' : '') + '</div>';
+    (G.mode === 'ranked' ? rkGuide() : '') + '</div>';
   $('app').appendChild(s);
   $('pkResume').onclick = () => { sfx('click'); pause(false); };
   $('pkQuit').onclick = () => { sfx('click'); s.remove(); G.quit = true; finish(false, false, true); };
@@ -120,6 +121,7 @@ function fpsTick() {
 export function frame(dt) {
   if (!G || !M) return;
   fpsTick();
+  if (M.limit && !G.ended) { const s = Math.ceil(M.tl); if (s !== G.tlS) { G.tlS = s; const e = $('hTime'); if (e) { e.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); e.classList.toggle('low', s <= 10); } if (s <= 5 && s > 0 && !M.paused) sfx('click'); } }
   const online = G.online;
   if (!G.ended && !M.paused) {
     if (G.guest) {
@@ -144,7 +146,8 @@ export function frame(dt) {
       say(t('ab_' + e.a), ABIL[e.a].col); sfx(e.a === 'turbo' || e.a === 'fuego' ? 'turbo' : 'whoosh'); if (!G.guest && e.who === 0) G.orbs++;
     } else if (e.k === 'over' && !G.guest) {
       if (G.online) nsend({ t: 'end', w: M.winner === 0 ? 0 : 1, sc: M.sc });
-      finish(M.winner === 0);
+      if (e.time) say(t('time_up'), '#ffd21f');
+      finish(M.winner === 0, false, false, M.winner === -1);
     }
   }
   stage.frame(dt, M, { side: G.flip ? 1 : 0 });
@@ -155,13 +158,13 @@ export const gameInfo = () => (G ? { mode: G.mode, tutorial: !!G.opts.tutorial, 
 export function endPractice() { if (G && !G.ended) finish(true, false, true); }
 
 /* ---------------------------------------------------------------- resultado */
-function finish(win, lost, quit) {
+function finish(win, lost, quit, draw) {
   if (!G || G.ended) return; G.ended = true; M.paused = true;
   const opts = G.opts, mode = G.mode;
   if (G.online && !lost && !G.guest && !quit) { /* ya se avisó */ }
   if (G.online && quit) nsend({ t: 'bye' });
   const win2 = quit ? false : win;
-  const res = (quit && mode !== 'ranked') || opts.tutorial ? { mode, quit: true, skip: true, win: false, rp0: P.rp, rp1: P.rp, d: 0, pc: 0, xp: 0, lvUp: 0, sc: M.sc.slice() } : settle(mode, win2, quit);
+  const res = (quit && mode !== 'ranked') || opts.tutorial ? { mode, quit: true, skip: true, win: false, rp0: P.rp, rp1: P.rp, d: 0, pc: 0, xp: 0, lvUp: 0, sc: M.sc.slice() } : settle(mode, win2, quit, !!draw);
   /* quitar controles y HUD */
   setTimeout(() => {
     offs.forEach((f) => f()); offs = [];
@@ -171,11 +174,22 @@ function finish(win, lost, quit) {
     const cb = opts.onEnd; G = null; M = null;
     if (cb) cb(res);
   }, quit ? 50 : 1500);
-  if (!quit) { sfx(win2 ? 'win' : 'lose'); say(win2 ? t('victory') : t('defeat'), win2 ? '#ffd400' : '#ff7088'); if (win2) stage.celebrate(['#ffd400', '#ffffff', '#19e6a0']); }
+  if (!quit) { sfx(win2 ? 'win' : draw ? 'point' : 'lose'); say(win2 ? t('victory') : draw ? t('draw') : t('defeat'), win2 ? '#ffd400' : draw ? '#ffd21f' : '#ff7088'); if (win2) stage.celebrate(['#ffd400', '#ffffff', '#19e6a0']); }
 }
 
 /* recompensas, rango, estadísticas y misiones */
-function settle(mode, win, quit) {
+/* ---- puntos de rango (RP) de la clasificatoria: todo se escala con el nivel del rango ---- */
+const rpBase = () => Math.round((TI[rankOf(P.rp).t].cost || 320) * 0.22);                         /* victoria base */
+const lossBonus = (pts, b) => Math.round(b * ({ 4: 0.2, 5: 0.3, 6: 0.4 }[pts] || 0));              /* perder con 4+ puntos */
+const quitPenalty = (pts, b) => (pts >= 5 ? 0 : Math.round(b * 1.5 * (5 - pts) / 5));            /* rendirse: baja la multa con cada punto */
+function rkGuide() {
+  const b = rpBase(), pts = M ? M.sc[G.guest ? 1 : 0] : 0, pen = Math.min(quitPenalty(pts, b), P.rp - rankOf(P.rp).tierLo);
+  const row = (ic, k, v, c) => '<div class="rk"><span>' + ic + ' ' + esc(t(k)) + '</span><b class="' + c + '">' + v + '</b></div>';
+  return '<div class="rkg">' + row('🏆', 'rk_win', '+' + (b + Math.min(9, P.streak * 3)), 'up') + row('🤝', 'rk_draw', '+' + Math.round(b * 0.4), 'up') +
+    row('💪', 'rk_lose4', '+' + lossBonus(4, b) + ' → +' + lossBonus(6, b), 'up') + row('😶', 'rk_lose3', '0', '') + row('🏳', 'rk_quit', pen ? '−' + pen : '0', pen ? 'dn' : '') + '</div>' +
+    (pts >= 5 ? '<div class="muted c">' + esc(t('rk_safe')) + '</div>' : '');
+}
+function settle(mode, win, quit, draw) {
   const r = { mode, win, quit: !!quit, rp0: P.rp, rp1: P.rp, d: 0, pc: 0, xp: 0, lvUp: 0, shield: false, boost: false, streak: P.streak, sc: M ? M.sc.slice() : [0, 0] };
   const pts = M ? M.sc[G.guest ? 1 : 0] : 0;
   if (mode !== 'local') P.games++;
@@ -186,21 +200,26 @@ function settle(mode, win, quit) {
       P.w++; P.streak++; P.bestStreak = Math.max(P.bestStreak || 0, P.streak); track('win');
       if (M && M.sc[1 - (G.guest ? 1 : 0)] === 0) P.shut++;
       if ((mode === 'train' && G.opts.diff === 'hard') || (mode === 'ranked' && G.L >= 60)) P.hardWins++;
-    } else { P.l++; P.streak = 0; }
+    } else if (!draw) { P.l++; P.streak = 0; }
     r.streak = P.streak;
-    r.pc = mode === 'ranked' ? (win ? 30 : 8) : mode === 'train' ? (win ? 12 : 3) : (win ? 15 : 5);
-    r.xp = mode === 'ranked' ? (win ? 60 : 25) : mode === 'train' ? (win ? 20 : 10) : (win ? 40 : 15);
+    r.draw = !!draw;
+    r.pc = mode === 'ranked' ? (quit ? 0 : win ? 30 : draw ? 15 : pts >= 4 ? 8 : 4) : mode === 'train' ? (win ? 12 : 3) : (win ? 15 : 5);
+    r.xp = mode === 'ranked' ? (quit ? 0 : win ? 60 : draw ? 40 : pts >= 4 ? 25 : 12) : mode === 'train' ? (win ? 20 : 10) : (win ? 40 : 15);
     if (mode === 'ranked') {
-      P[win ? 'rw' : 'rl']++;
+      if (!draw) P[win ? 'rw' : 'rl']++;
+      const base = rpBase();
       if (win) {
-        let d = 22 + Math.min(9, Math.max(0, P.streak - 1) * 3);
+        let d = base + Math.min(9, Math.max(0, P.streak - 1) * 3);
         if (P.boost > 0) { P.boost--; d = Math.round(d * 1.5); r.boost = true; }
         P.rp += d; r.d = d;
-      } else {
-        const lo = rankOf(P.rp).tierLo; let d = 12;
-        if (P.shield > 0 && !quit) { P.shield--; r.shield = true; d = 0; }
-        const np = Math.max(lo, P.rp - d); r.d = np - P.rp; P.rp = np;
+      } else if (draw) {                       /* tabla: se premia la lucha si ambos jugaron de verdad */
+        const d = pts >= 3 ? Math.round(base * 0.4) : 0; P.rp += d; r.d = d;
+      } else if (quit) {                       /* rendirse: multa que baja con cada punto; con 5+ no se pierde nada */
+        const lo = rankOf(P.rp).tierLo, np = Math.max(lo, P.rp - quitPenalty(pts, base)); r.d = np - P.rp; P.rp = np;
+      } else {                                 /* derrota: con 4+ puntos hay bonificacion, con 3 o menos nada */
+        const d = lossBonus(pts, base); P.rp += d; r.d = d;
       }
+      r.pts = pts;
       r.rp1 = P.rp;
     }
     P.pc += r.pc;
