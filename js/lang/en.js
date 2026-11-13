@@ -67,4 +67,12 @@ export default {
   tu_done_t: "Well done!", tu_done: "You know how to play now. On to the menu…",
   tu_shop_t: "Your gift: 50 $!", tu_shop: "Coins are spent in the shop: paddles, balls and tables. Tap the shop to finish.",
   tu_next: "Next", tu_skip: "Skip",
+  draw: "DRAW",
+  time_up: "TIME'S UP!",
+  rk_win: "Win",
+  rk_draw: "Draw",
+  rk_lose4: "Lose with 4+ points",
+  rk_lose3: "Lose with 3 or less",
+  rk_quit: "Quit now",
+  rk_safe: "You already have 5+ points: quitting costs nothing.",
 };
