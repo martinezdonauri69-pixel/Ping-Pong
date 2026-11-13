@@ -1,11 +1,11 @@
 /* intro.js · portada "TOCA PARA JUGAR" + intro cinematografica de D.M.R PING PONG
    Todo se dibuja en un canvas 2D y el sonido se genera con WebAudio (sin archivos).
    Orden: portada -> toque -> escenas 1-4 (~6 s) -> menu. Se ejecuta una sola vez por sesion. */
-import { SET } from './state.js';
+import { SET, THEMES } from './state.js';
 
 const BG = '#05091F';
-const LOAD = 2800; /* ms que tarda en llenarse la barra de carga antes de entrar al juego */
 const K = 1.6; /* factor de duracion: las escenas se estiran para que la intro dure unos 10 s */
+const LOAD = (6500 - 1900) * K; /* la barra nace en el choque (t=1900) y se llena justo al terminar la intro (t=6500) */
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const seg = (t, a, b) => clamp((t - a) / (b - a));
 const E = {
@@ -150,7 +150,7 @@ function mkAudio(muted) {
   for (let i = 0; i < 7; i++) pad(ch[i % 4], m0 + i * 1.5, 1.8, 0.05);
   for (let k = 0; k < 40; k++) { const i = Math.floor(k / 6) % 4; tone(rt2[i], 0.22, 'sawtooth', 0.1, m0 + 0.05 + k * 0.25, 0, mus, 320); }
   for (let k = 0; k < 70; k++) { const i = Math.floor(k / 12) % 4, f = [440, 523.25, 659.25, 523.25][i]; tone(f * (k % 2 ? 1.5 : 1), 0.11, 'triangle', 0.032, m0 + 0.7 + k * 0.125, 0, mus, 3000); }
-  mus.gain.setValueAtTime(0.5, t0 + Ks(5.3)); mus.gain.linearRampToValueAtTime(0.0001, t0 + Ks(6.5) + 3.1);
+  mus.gain.setValueAtTime(0.5, t0 + Ks(5.3)); mus.gain.linearRampToValueAtTime(0.0001, t0 + Ks(6.5) + 0.3);
   return { a, out, stop() { try { out.gain.cancelScheduledValues(a.currentTime); out.gain.setTargetAtTime(0, a.currentTime, 0.06); setTimeout(() => a.close(), 600); } catch (e) { /* nada */ } },
     mute(m) { out.gain.setTargetAtTime(m ? 0 : 0.9, a.currentTime, 0.03); } };
 }
@@ -162,6 +162,7 @@ export function play() {
   return new Promise((done) => {
     if (!document.getElementById('introCss')) { const s = document.createElement('style'); s.id = 'introCss'; s.textContent = CSS; document.head.appendChild(s); }
     let muted = SET.snd === false; try { if (localStorage.getItem('dmr_intro_mute') === '1') muted = true; } catch (e) { /* nada */ }
+    const th = THEMES[SET.theme] || THEMES[0]; /* color elegido por el jugador (barra de carga) */
     const root = document.createElement('div'); root.id = 'intro';
     root.innerHTML = '<canvas></canvas>'
       + '<button id="itGo" aria-label="Toca para jugar"><span class="tx">TOCA PARA JUGAR</span></button>'
@@ -223,7 +224,6 @@ export function play() {
     const draw = (now) => {
       const dt = Math.min(0.05, (now - (last || now)) / 1000); last = now;
       const rt = run ? now - t0 : -1, t = run ? rt / K : -1, G = geo(), cx = G.cx;
-      if (run && t >= 6500 && !loadStart) loadStart = now;
       if (loadStart && now - loadStart >= LOAD + 300) finish();
       const L = run ? 0.35 + 0.65 * E.out(seg(t, 0, 700)) : 0.35 + 0.05 * Math.sin(now / 1100);
       const pm = run ? 1 + 2.2 * E.out(seg(t, 0, 900)) - 1.2 * seg(t, 3000, 5000) : 1;
@@ -279,7 +279,7 @@ export function play() {
       if (run) {
         if (t >= 300 && !ev.a) { ev.a = 1; emit(18, W * 0.04, H * 0.08, 140, ['#FF1744', '#ff8fa3']); emit(18, W * 0.96, H * 0.08, 140, ['#1677FF', '#8fbcff']); }
         if (t >= 520 && !ev.b) { ev.b = 1; emit(14, W * 0.04, H * 0.14, 120, ['#FF1744']); emit(14, W * 0.96, H * 0.14, 120, ['#1677FF']); }
-        if (t >= 1900 && !ev.c) { ev.c = 1; emit(70, cx, G.by, 380, ['#ffffff', '#FF1744', '#1677FF', '#C8D0E0'], 0.8); ring(cx, G.by, now, 650, G.m * 0.5, '255,255,255'); ring(cx, G.by, now, 800, G.m * 0.75, '255,23,68'); ring(cx, G.by, now + 80, 800, G.m * 0.75, '22,119,255'); flash(cx, G.by, now, 0.8, 450); }
+        if (t >= 1900 && !ev.c) { ev.c = 1; loadStart = now; emit(70, cx, G.by, 380, ['#ffffff', '#FF1744', '#1677FF', '#C8D0E0'], 0.8); ring(cx, G.by, now, 650, G.m * 0.5, '255,255,255'); ring(cx, G.by, now, 800, G.m * 0.75, '255,23,68'); ring(cx, G.by, now + 80, 800, G.m * 0.75, '22,119,255'); flash(cx, G.by, now, 0.8, 450); }
         if (t >= 2700 && !ev.d) { ev.d = 1; const ly = H * 0.44; emit(60, cx, ly, 420, ['#ffffff', '#FF1744', '#1677FF'], 0.9); ring(cx, ly, now, 900, W * 0.6, '255,255,255'); ring(cx, ly, now + 100, 1000, W * 0.8, '200,208,224'); flash(cx, ly, now, 0.9, 700); }
       }
       /* raquetas */
@@ -318,7 +318,7 @@ export function play() {
           g.globalAlpha = finA; g.drawImage(logo, cx - w / 2, y - h / 2, w, h);
           const ry = 2 * yF - (y + h / 2); if (refl && ry < H) { g.globalAlpha = finA * 0.5; g.drawImage(refl, cx - w / 2, ry, w, h); g.globalAlpha = finA; }
           const fa = 1 - seg(t, 2700, 3700); if (fa > 0) { const fg = g.createLinearGradient(0, 0, W, 0); fg.addColorStop(0, 'rgba(255,23,68,0)'); fg.addColorStop(0.2, `rgba(255,23,68,${0.7 * fa})`); fg.addColorStop(0.5, `rgba(255,255,255,${0.9 * fa})`); fg.addColorStop(0.8, `rgba(22,119,255,${0.7 * fa})`); fg.addColorStop(1, 'rgba(22,119,255,0)'); g.fillStyle = fg; g.fillRect(0, y - 1.5, W, 3); }
-          const sw = t < 4600 ? seg(t, 3700, 4500) : loadStart ? ((now - loadStart) / 1700) % 1 : seg(t, 5200, 5900);
+          const sw = t < 4600 ? seg(t, 3700, 4500) : seg(t, 5200, 5900);
           if (sw > 0 && sw < 1) { /* destello de luz que recorre el metal */
             const tmp = rs2c(logo); const tg = tmp.getContext('2d'); tg.globalCompositeOperation = 'source-atop'; const px = -logo.width * 0.3 + sw * logo.width * 1.6, qq = tg.createLinearGradient(px - 40, 0, px + 40, logo.height * 0.4);
             qq.addColorStop(0, 'rgba(255,255,255,0)'); qq.addColorStop(0.5, 'rgba(255,255,255,.32)'); qq.addColorStop(1, 'rgba(255,255,255,0)'); tg.fillStyle = qq; tg.fillRect(0, 0, logo.width, logo.height); g.drawImage(tmp, cx - w / 2, y - h / 2, w, h);
@@ -356,15 +356,15 @@ export function play() {
       /* barra de carga: se llena y entonces entra el juego */
       if (loadStart) {
         g.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const el = now - loadStart, p = E.io(clamp(el / LOAD)), a = E.out(seg(el, 0, 400)), x0 = W * 0.14, x1 = W * 0.86, y = uiY || H * 0.9, xe = x0 + (x1 - x0) * p;
+        const el = now - loadStart, lp = clamp(el / LOAD), p = 0.5 * lp + 0.5 * E.io(lp), a = E.out(seg(el, 0, 400)), x0 = W * 0.14, x1 = W * 0.86, y = uiY || H * 0.9, xe = x0 + (x1 - x0) * p;
         g.globalAlpha = a; g.fillStyle = 'rgba(200,208,224,.14)'; g.beginPath(); g.roundRect ? g.roundRect(x0, y - 2, x1 - x0, 4, 2) : g.rect(x0, y - 2, x1 - x0, 4); g.fill();
-        const bg = g.createLinearGradient(x0, 0, x1, 0); bg.addColorStop(0, '#FF1744'); bg.addColorStop(0.5, '#e6ebff'); bg.addColorStop(1, '#1677FF');
+        const bg = g.createLinearGradient(x0, 0, x1, 0); bg.addColorStop(0, th.a); bg.addColorStop(0.55, '#e6ebff'); bg.addColorStop(1, th.b);
         g.fillStyle = bg; g.beginPath(); g.roundRect ? g.roundRect(x0, y - 2, Math.max(4, xe - x0), 4, 2) : g.rect(x0, y - 2, Math.max(4, xe - x0), 4); g.fill();
         const hg = g.createRadialGradient(xe, y, 0, xe, y, 12); hg.addColorStop(0, 'rgba(255,255,255,.55)'); hg.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = hg; g.beginPath(); g.arc(xe, y, 12, 0, 7); g.fill();
         g.fillStyle = '#fff'; g.beginPath(); g.arc(xe, y, 2.4, 0, 7); g.fill();
         g.fillStyle = 'rgba(200,208,224,.85)'; g.font = '700 12px "Roboto",system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; if ('letterSpacing' in g) g.letterSpacing = '4px';
         g.fillText('CARGANDO  ' + Math.round(p * 100) + '%', W / 2, y - 16); if ('letterSpacing' in g) g.letterSpacing = '0px'; g.globalAlpha = 1;
-        if (p >= 1 && !ev.f) { ev.f = 1; emit(30, x1, y, 220, ['#8fbcff', '#ffffff', '#1677FF'], 0.6); flash(x1, y, now, 0.35, 400); }
+        if (p >= 1 && !ev.f) { ev.f = 1; emit(30, x1, y, 220, [th.b, '#ffffff', th.a], 0.6); flash(x1, y, now, 0.35, 400); }
       }
       /* oscurecer un poco al tocar */
       if (run) { g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = `rgba(5,9,31,${0.25 * Math.sin(Math.PI * seg(t, 0, 900))})`; g.fillRect(0, 0, W, H); }
