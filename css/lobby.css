@@ -130,6 +130,7 @@
 .score3d .n.pop{transform:scale(1.5)}
 .score3d .sep{font-weight:900;color:#9fb0e6}
 .hud-top .tag{display:flex;gap:6px;align-items:center;pointer-events:none}
+#hFps{position:absolute;left:calc(var(--sal) + 12px);top:calc(var(--sat) + 62px);font-size:11px;font-weight:800;letter-spacing:.06em;padding:2px 8px;border-radius:99px;background:rgba(4,6,30,.55);pointer-events:none;opacity:.9}
 #cdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:min(34vw,42vh);font-weight:900;font-style:italic;color:#fff;
   text-shadow:0 6px 0 #1a3acf,0 12px 0 #0e2480,0 18px 30px rgba(0,0,0,.6),0 0 50px var(--cyan)}
 #cdown.go{animation:cdPop .55s ease-out}
