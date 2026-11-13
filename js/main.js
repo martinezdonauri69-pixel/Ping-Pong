@@ -11,6 +11,7 @@ import * as Game from './game.js';
 import * as Lobby from './lobby.js';
 import * as Tuto from './tutorial.js';
 import { NET, watchInvites } from './online.js';
+import * as Intro from './intro.js';
 
 setSfx(sfx);
 const err = (m) => { const e = $('err'); if (e) { e.textContent = String(m).slice(0, 160); e.style.display = 'block'; setTimeout(() => { e.style.display = 'none'; }, 5000); } };
@@ -72,9 +73,10 @@ async function boot() {
   /* pantalla de inicio: un toque (necesario para que el teléfono deje sonar el audio) */
   await Promise.race([rs, new Promise((r) => setTimeout(r, 3500))]);
   
-  const enter = () => {
-    spl.removeEventListener('click', enter); unlock(); applyVol(); music('menu'); sfx('whoosh');
-    spl.style.transition = 'opacity .4s'; spl.style.opacity = '0'; setTimeout(() => spl.remove(), 420);
+  const enter = async () => {
+    spl.removeEventListener('click', enter); unlock(); applyVol();
+    if (!new URLSearchParams(location.search).has('autostart')) { try { await Intro.play(); } catch (e) { console.warn('intro', e); } }
+    music('menu'); spl.remove();
     Lobby.show(true); Lobby.render();
     watchInvites(() => (Game.active() ? 'game' : 'lobby')); bus.on('auth', () => setTimeout(() => watchInvites(() => (Game.active() ? 'game' : 'lobby')), 300));
     if (!P.tuto) setTimeout(startTutorial, 700);
