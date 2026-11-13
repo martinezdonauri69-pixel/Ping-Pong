@@ -1,14 +1,35 @@
 /* intro.js · intro animada con sonido: la pelota rebota entre dos paletas y se convierte en el logo.
-   Un toque la salta. Todo el sonido sale de audio.js (WebAudio). */
+   Es obligatoria: no se puede saltar. Todo el sonido sale de audio.js (WebAudio). */
 import { sfx } from './audio.js';
 
 const T_HIT = [350, 1050, 1750];   /* golpes: izquierda, derecha, izquierda */
 const T_END = 2350;                /* la pelota llega al centro y se vuelve logo */
 const T_OUT = 4100;                /* empieza a desvanecerse */
 const ease = (x) => 1 - Math.pow(1 - x, 3);
+const CSS = `/* intro.css · intro de D.M.R PING PONG (sin brillos fuertes) */
+#intro{position:fixed;inset:0;z-index:60;background:radial-gradient(ellipse at 50% 42%,#0d1a58 0,#04061a 72%);opacity:0;transition:opacity .25s ease-out;overflow:hidden;touch-action:manipulation}
+#intro.on{opacity:1}
+#intro.off{opacity:0;transition:opacity .45s ease-in}
+#intro canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#intro .box{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;pointer-events:none}
+#intro .logo{width:min(46vw,36vh,230px);aspect-ratio:1;border-radius:50%;box-shadow:0 8px 28px rgba(0,0,0,.55);opacity:0;transform:scale(.06)}
+#intro .logo.in{opacity:1;transform:scale(1);transition:transform .7s cubic-bezier(.2,1.25,.4,1),opacity .15s linear}
+#intro h1{margin:0;display:flex;gap:.04em;font-size:clamp(24px,7vw,42px);letter-spacing:.3em;text-indent:.3em;font-weight:900}
+#intro h1 span{display:inline-block;opacity:0;transform:translateY(14px) scale(.9)}
+#intro h1 span.p{color:#ff5a76}
+#intro h1 span.q{color:#5b9bff}
+#intro h1 span.sp{width:.5em}
+#intro h1.in span{animation:itLet .45s cubic-bezier(.2,1.2,.4,1) both}
+#intro .bar{width:min(52vw,240px);height:3px;border-radius:3px;background:linear-gradient(90deg,#ff2d4f,#2f7bff);opacity:0;transform:scaleX(0)}
+#intro .bar.in{opacity:.85;transform:scaleX(1);transition:transform .6s ease-out,opacity .3s}
+@keyframes itLet{to{opacity:1;transform:none}}
+`;
+function addCss() { if (document.getElementById('introCss')) return; const st = document.createElement('style'); st.id = 'introCss'; st.textContent = CSS; document.head.appendChild(st); }
+function rr(g, x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
 
 export function play() {
   return new Promise((done) => {
+    addCss();
     const root = document.createElement('div'); root.id = 'intro';
     const cv = document.createElement('canvas'); root.appendChild(cv);
     const box = document.createElement('div'); box.className = 'box';
@@ -34,7 +55,6 @@ export function play() {
       root.classList.remove('on'); root.classList.add('off');
       setTimeout(() => { root.remove(); done(); }, 460);
     };
-    root.addEventListener('pointerdown', finish);
     addEventListener('resize', size);
 
     /* sonidos sincronizados */
@@ -58,6 +78,9 @@ export function play() {
 
     const frame = (now) => {
       if (ended) return; raf = requestAnimationFrame(frame);
+      try { draw(now); } catch (e) { /* si algo falla, la intro termina sola */ }
+    };
+    const draw = (now) => {
       const t = now - t0, G = geo();
       g.clearRect(0, 0, W, H);
 
@@ -73,8 +96,8 @@ export function play() {
       const drawPad = (x, col, k) => {
         const off = (1 - pin) * (k ? 60 : -60) + hit[k] * (k ? -10 : 10);
         g.save(); g.globalAlpha = pa; g.fillStyle = col;
-        g.beginPath(); g.roundRect(x + off - G.pw / 2, G.yb - G.ph / 2, G.pw, G.ph, G.pw / 2); g.fill();
-        g.fillStyle = 'rgba(255,255,255,.18)'; g.beginPath(); g.roundRect(x + off - G.pw / 2 + 2, G.yb - G.ph / 2 + 6, G.pw * 0.35, G.ph - 12, 3); g.fill();
+        rr(g, x + off - G.pw / 2, G.yb - G.ph / 2, G.pw, G.ph, G.pw / 2); g.fill();
+        g.fillStyle = 'rgba(255,255,255,.18)'; rr(g, x + off - G.pw / 2 + 2, G.yb - G.ph / 2 + 6, G.pw * 0.35, G.ph - 12, 3); g.fill();
         g.restore();
       };
       drawPad(G.lx, '#ff2d4f', 0); drawPad(G.rx, '#2f7bff', 1);
