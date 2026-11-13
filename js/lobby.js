@@ -21,22 +21,23 @@ export function build() {
   const l = document.createElement('div'); l.id = 'lobby'; l.className = 'scr'; l.hidden = true;
   l.innerHTML = `
   <div class="hdr">
-    <button class="prof" id="lbProf"><span id="lbAv"></span><span style="min-width:0;flex:1"><span class="nm" id="lbNm"></span><small id="lbLv"></small><div class="bar"><i id="lbXp"></i></div></span></button>
+    <button class="prof" id="lbProf"><span id="lbAv"></span><span class="pt"><span class="nm" id="lbNm"></span><small id="lbLv"></small><div class="bar"><i id="lbXp"></i></div></span><span class="rkm" id="lbRank" role="button" tabindex="0"><span id="lbBadge"></span><b id="lbRname"></b></span></button>
     <span class="cur" id="lbCoins"><i class="coin3d">$</i><b id="lbPc">0</b></span>
     <span class="cur gm" id="lbGems"><i class="gem3d"></i><b id="lbGm">0</b></span>
     <button class="b3d ghost ib3d" id="lbInbox" style="position:relative" data-i-ti="inbox">✉️<i class="dot" id="dInbox"></i></button>
     <button class="b3d ghost ib3d" id="lbSet" data-i-ti="settings">⚙️</button>
   </div>
+  <div class="side" id="lbSide"></div>
   <div class="hero"><div class="mono"><span>D</span><i>.</i><span>M</span><i>.</i><span>R</span></div><div class="ppt">PING PONG</div></div>
-  <button class="rankcard" id="lbRank"><span id="lbBadge"></span><span class="t"><small data-i="rank">Rango</small><b id="lbRname"></b><div class="bar"><i id="lbRbar"></i></div><small id="lbRpts"></small></span></button>
   <button class="b3d green lg block playbtn" id="lbPlay"><span id="lbPlayT">▶</span><small id="lbPlayS"></small></button>
-  <div class="tiles" id="lbTiles"></div>
+  <div class="modes"><div class="mlabel"><i></i><span id="lbModes"></span><i></i></div><div class="tiles" id="lbTiles"></div></div>
+  <div class="navbar" id="lbNav"></div>
   <button class="b3d ghost sm langbtn" id="lbLang"></button>`;
   $('app').appendChild(l);
   $('lbProf').onclick = () => { sfx('click'); openProfile(); };
   $('lbInbox').onclick = () => { sfx('click'); openInbox(); };
   $('lbSet').onclick = () => { sfx('click'); openSettings(); };
-  $('lbRank').onclick = () => { sfx('click'); openRankInfo(); };
+  $('lbRank').onclick = (e) => { e.stopPropagation(); sfx('click'); openRankInfo(); };
   $('lbPlay').onclick = () => { if (Tuto.isRunning()) return; sfx('click'); H.play({ mode: 'ranked' }); };
   $('lbLang').onclick = () => { sfx('click'); openLang(); };
   bus.on('lang', render); bus.on('profile', render); bus.on('auth', () => { render(); badges(); }); bus.on('badges', badges);
@@ -54,6 +55,9 @@ const TILES = [
   ['fr', '🤝', 'tl_friends', '#ff4d6d', () => openFriends((p) => invite(p))],
   ['ach', '🏆', 'tl_ach', '#e8c200', () => openAch()],
 ];
+/* posicion de cada boton en el lobby: modos (centro), laterales (derecha) y barra inferior */
+const GROUP = { train: 'modes', local: 'modes', online: 'modes', msn: 'side', daily: 'side', shop: 'nav', rank: 'nav', fr: 'nav', ach: 'nav', adm: 'nav' };
+const MODES_LBL = { es: 'MODOS DE JUEGO', en: 'GAME MODES' };
 export const targets = () => ({ coins: $('lbCoins'), rank: $('lbRank'), play: $('lbPlay'), shop: document.querySelector('[data-tile=shop]') });
 
 export function render() {
@@ -64,23 +68,25 @@ export function render() {
   $('lbLv').textContent = t('lv') + ' ' + lvl();
   $('lbXp').style.width = Math.round(lvProg() * 100) + '%';
   $('lbPc').textContent = fmt(P.pc); $('lbGm').textContent = fmt(P.gems);
-  $('lbBadge').innerHTML = badge(r.t, r.d, 52);
+  $('lbBadge').innerHTML = badge(r.t, r.d, 30);
   $('lbRname').textContent = rankName(r);
   $('lbRank').style.setProperty('--rc', tr.gl);
-  $('lbRbar').style.width = Math.round(rankProg(P.rp) * 100) + '%';
-  $('lbRpts').textContent = r.hi == null ? fmt(P.rp) + ' RP · MAX' : fmt(P.rp) + ' / ' + fmt(r.hi) + ' RP';
+  $('lbRank').title = r.hi == null ? fmt(P.rp) + ' RP · MAX' : fmt(P.rp) + ' / ' + fmt(r.hi) + ' RP';
+  $('lbModes').textContent = MODES_LBL[lang()] || MODES_LBL.en;
   $('lbPlayT').textContent = '▶ ' + t('play');
   $('lbPlayS').textContent = t('play_sub');
   $('lbLang').textContent = (LANGS.find((x) => x[0] === lang()) || LANGS[0])[2] + ' ' + (LANGS.find((x) => x[0] === lang()) || LANGS[0])[1];
   document.querySelectorAll('#lobby [data-i]').forEach((e) => { e.textContent = t(e.dataset.i); });
   document.querySelectorAll('#lobby [data-i-ti]').forEach((e) => { e.title = t(e.dataset.iTi); });
-  const T = $('lbTiles'), list = TILES.slice(); if (X.admin) list.push(['adm', '👑', 'tl_admin', '#ffd21f', () => openAdmin()]);
-  T.innerHTML = '';
+  const list = TILES.slice(); if (X.admin) list.push(['adm', '👑', 'tl_admin', '#ffd21f', () => openAdmin()]);
+  const slots = { modes: $('lbTiles'), side: $('lbSide'), nav: $('lbNav') }; Object.values(slots).forEach((e) => { e.innerHTML = ''; });
   list.forEach(([k, ic, tk, c, fn]) => {
-    const b = document.createElement('button'); b.className = 'tile'; b.dataset.tile = k; b.style.setProperty('--tc', c);
-    b.innerHTML = '<span class="ic">' + ic + '</span><b>' + esc(t(tk)) + '</b>' + (k === 'msn' || k === 'daily' ? '<i class="dot" id="d_' + k + '"></i>' : '');
-    b.onclick = () => { sfx('click'); fn(); }; T.appendChild(b);
+    const zone = GROUP[k] || 'modes', b = document.createElement('button'); b.dataset.tile = k; b.style.setProperty('--tc', c);
+    b.className = zone === 'nav' ? 'nv' : zone === 'side' ? 'tile sd' : 'tile';
+    b.innerHTML = '<span class="ic">' + ic + '</span><b>' + esc(t(tk)) + '</b>' + (zone === 'side' ? '<em>›</em>' : '') + (k === 'msn' || k === 'daily' ? '<i class="dot" id="d_' + k + '"></i>' : '');
+    b.onclick = () => { sfx('click'); fn(); }; slots[zone].appendChild(b);
   });
+  $('lbNav').hidden = !$('lbNav').children.length;
   badges();
 }
 export async function badges() {
