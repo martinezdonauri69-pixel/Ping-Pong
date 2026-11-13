@@ -147,8 +147,8 @@ input[type=range]{width:100%;accent-color:var(--cyan)}
 
 /* ---------- Splash ---------- */
 #splash{background:radial-gradient(ellipse at 50% 40%,#10226e 0,#04061a 70%);z-index:30;gap:14px}
-#splash .lg{width:min(46vw,36vh,230px);aspect-ratio:1;border-radius:50%;box-shadow:0 0 40px rgba(255,45,79,.5),0 0 70px rgba(47,123,255,.5);animation:float 3.2s ease-in-out infinite}
-#splash h1{margin:0;font-size:clamp(22px,6vw,38px);letter-spacing:.35em;text-indent:.35em;text-shadow:0 0 20px var(--blue)}
+#splash .lg{width:min(46vw,36vh,230px);aspect-ratio:1;border-radius:50%;box-shadow:0 6px 26px rgba(0,0,0,.5),0 0 18px rgba(255,45,79,.18),0 0 28px rgba(47,123,255,.18);animation:float 3.2s ease-in-out infinite}
+#splash h1{margin:0;font-size:clamp(22px,6vw,38px);letter-spacing:.35em;text-indent:.35em;text-shadow:0 2px 0 rgba(0,0,0,.4)}
 @keyframes float{50%{transform:translateY(-8px) rotateZ(1.5deg)}}
 @keyframes pulse{50%{transform:scale(1.05)}}
 .pulse{animation:pulse 1.4s ease-in-out infinite}
