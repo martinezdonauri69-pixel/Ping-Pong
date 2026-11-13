@@ -4,6 +4,7 @@
 import { SET } from './state.js';
 
 const BG = '#05091F';
+const LOAD = 2800; /* ms que tarda en llenarse la barra de carga antes de entrar al juego */
 const K = 1.6; /* factor de duracion: las escenas se estiran para que la intro dure unos 10 s */
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const seg = (t, a, b) => clamp((t - a) / (b - a));
@@ -146,10 +147,10 @@ function mkAudio(muted) {
   [440, 660, 880, 1320].forEach((f, i) => tone(f, 0.4, 'triangle', 0.16, lg + 0.08 + i * 0.12, 0, out, 5000)); nz(1.8, 0.2, 'highpass', 5000, 7000, lg, 0, 0.04);
   /* musica epica electronica: sube con el logo y baja de intensidad al final */
   const m0 = lg + 0.1, ch = [[220, 261.63, 329.63], [174.61, 220, 261.63], [196, 261.63, 329.63], [196, 246.94, 293.66]], rt2 = [110, 87.3, 130.8, 98];
-  ch.forEach((c, i) => pad(c, m0 + i * 1.5, 1.8, 0.05));
-  for (let k = 0; k < 24; k++) { const i = Math.floor(k / 6) % 4; tone(rt2[i], 0.22, 'sawtooth', 0.1, m0 + 0.05 + k * 0.25, 0, mus, 320); }
-  for (let k = 0; k < 40; k++) { const i = Math.floor(k / 12) % 4, f = [440, 523.25, 659.25, 523.25][i]; tone(f * (k % 2 ? 1.5 : 1), 0.11, 'triangle', 0.032, m0 + 0.7 + k * 0.125, 0, mus, 3000); }
-  mus.gain.setValueAtTime(0.5, t0 + Ks(5.3)); mus.gain.linearRampToValueAtTime(0.0001, t0 + Ks(6.5));
+  for (let i = 0; i < 7; i++) pad(ch[i % 4], m0 + i * 1.5, 1.8, 0.05);
+  for (let k = 0; k < 40; k++) { const i = Math.floor(k / 6) % 4; tone(rt2[i], 0.22, 'sawtooth', 0.1, m0 + 0.05 + k * 0.25, 0, mus, 320); }
+  for (let k = 0; k < 70; k++) { const i = Math.floor(k / 12) % 4, f = [440, 523.25, 659.25, 523.25][i]; tone(f * (k % 2 ? 1.5 : 1), 0.11, 'triangle', 0.032, m0 + 0.7 + k * 0.125, 0, mus, 3000); }
+  mus.gain.setValueAtTime(0.5, t0 + Ks(5.3)); mus.gain.linearRampToValueAtTime(0.0001, t0 + Ks(6.5) + 3.1);
   return { a, out, stop() { try { out.gain.cancelScheduledValues(a.currentTime); out.gain.setTargetAtTime(0, a.currentTime, 0.06); setTimeout(() => a.close(), 600); } catch (e) { /* nada */ } },
     mute(m) { out.gain.setTargetAtTime(m ? 0 : 0.9, a.currentTime, 0.03); } };
 }
@@ -169,7 +170,7 @@ export function play() {
     const cv = root.querySelector('canvas'), g = cv.getContext('2d'), $ = (i) => root.querySelector(i);
     const snd = $('#itSnd'); snd.classList.toggle('mute', muted);
 
-    let W = 0, H = 0, dpr = 1, S = 0, logo = null, refl = null, uiY = 0, eNext = 0, eo = new Array(40).fill(0), raf = 0, ended = false, audio = null, run = false, t0 = 0, last = 0, rs = 0;
+    let loadStart = 0, W = 0, H = 0, dpr = 1, S = 0, logo = null, refl = null, uiY = 0, eNext = 0, eo = new Array(40).fill(0), raf = 0, ended = false, audio = null, run = false, t0 = 0, last = 0, rs = 0;
     const parts = [], sparks = [], rings = [], trail = [], smoke = [], ev = {}; let flashes = [];
     const rnd = Math.random;
     const mkSmoke = (rgb) => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), q = x.createRadialGradient(64, 64, 0, 64, 64, 64); q.addColorStop(0, `rgba(${rgb},.55)`); q.addColorStop(1, `rgba(${rgb},0)`); x.fillStyle = q; x.fillRect(0, 0, 128, 128); return c; };
@@ -222,7 +223,8 @@ export function play() {
     const draw = (now) => {
       const dt = Math.min(0.05, (now - (last || now)) / 1000); last = now;
       const rt = run ? now - t0 : -1, t = run ? rt / K : -1, G = geo(), cx = G.cx;
-      if (run && t >= 6500) finish();
+      if (run && t >= 6500 && !loadStart) loadStart = now;
+      if (loadStart && now - loadStart >= LOAD + 300) finish();
       const L = run ? 0.35 + 0.65 * E.out(seg(t, 0, 700)) : 0.35 + 0.05 * Math.sin(now / 1100);
       const pm = run ? 1 + 2.2 * E.out(seg(t, 0, 900)) - 1.2 * seg(t, 3000, 5000) : 1;
       /* camara */
@@ -316,7 +318,7 @@ export function play() {
           g.globalAlpha = finA; g.drawImage(logo, cx - w / 2, y - h / 2, w, h);
           const ry = 2 * yF - (y + h / 2); if (refl && ry < H) { g.globalAlpha = finA * 0.5; g.drawImage(refl, cx - w / 2, ry, w, h); g.globalAlpha = finA; }
           const fa = 1 - seg(t, 2700, 3700); if (fa > 0) { const fg = g.createLinearGradient(0, 0, W, 0); fg.addColorStop(0, 'rgba(255,23,68,0)'); fg.addColorStop(0.2, `rgba(255,23,68,${0.7 * fa})`); fg.addColorStop(0.5, `rgba(255,255,255,${0.9 * fa})`); fg.addColorStop(0.8, `rgba(22,119,255,${0.7 * fa})`); fg.addColorStop(1, 'rgba(22,119,255,0)'); g.fillStyle = fg; g.fillRect(0, y - 1.5, W, 3); }
-          const sw = t < 4600 ? seg(t, 3700, 4500) : seg(t, 5200, 5900);
+          const sw = t < 4600 ? seg(t, 3700, 4500) : loadStart ? ((now - loadStart) / 1700) % 1 : seg(t, 5200, 5900);
           if (sw > 0 && sw < 1) { /* destello de luz que recorre el metal */
             const tmp = rs2c(logo); const tg = tmp.getContext('2d'); tg.globalCompositeOperation = 'source-atop'; const px = -logo.width * 0.3 + sw * logo.width * 1.6, qq = tg.createLinearGradient(px - 40, 0, px + 40, logo.height * 0.4);
             qq.addColorStop(0, 'rgba(255,255,255,0)'); qq.addColorStop(0.5, 'rgba(255,255,255,.32)'); qq.addColorStop(1, 'rgba(255,255,255,0)'); tg.fillStyle = qq; tg.fillRect(0, 0, logo.width, logo.height); g.drawImage(tmp, cx - w / 2, y - h / 2, w, h);
@@ -350,6 +352,19 @@ export function play() {
         g.fillStyle = '#FF1744'; g.beginPath(); g.arc(x0, uiY, 2.8, 0, 7); g.fill(); g.fillStyle = '#1677FF'; g.beginPath(); g.arc(x1, uiY, 2.8, 0, 7); g.fill(); g.globalAlpha = 1;
         if (!run && rnd() < 0.18) emit(1, x0 + rnd() * (x1 - x0), uiY, 70, [rnd() < 0.5 ? '#ff8fa3' : '#8fbcff'], 0.5);
         if (run && !ev.e) { ev.e = 1; emit(26, W * 0.3, uiY, 160, ['#ff8fa3', '#ffffff']); emit(26, W * 0.7, uiY, 160, ['#8fbcff', '#ffffff']); }
+      }
+      /* barra de carga: se llena y entonces entra el juego */
+      if (loadStart) {
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const el = now - loadStart, p = E.io(clamp(el / LOAD)), a = E.out(seg(el, 0, 400)), x0 = W * 0.14, x1 = W * 0.86, y = uiY || H * 0.9, xe = x0 + (x1 - x0) * p;
+        g.globalAlpha = a; g.fillStyle = 'rgba(200,208,224,.14)'; g.beginPath(); g.roundRect ? g.roundRect(x0, y - 2, x1 - x0, 4, 2) : g.rect(x0, y - 2, x1 - x0, 4); g.fill();
+        const bg = g.createLinearGradient(x0, 0, x1, 0); bg.addColorStop(0, '#FF1744'); bg.addColorStop(0.5, '#e6ebff'); bg.addColorStop(1, '#1677FF');
+        g.fillStyle = bg; g.beginPath(); g.roundRect ? g.roundRect(x0, y - 2, Math.max(4, xe - x0), 4, 2) : g.rect(x0, y - 2, Math.max(4, xe - x0), 4); g.fill();
+        const hg = g.createRadialGradient(xe, y, 0, xe, y, 12); hg.addColorStop(0, 'rgba(255,255,255,.55)'); hg.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = hg; g.beginPath(); g.arc(xe, y, 12, 0, 7); g.fill();
+        g.fillStyle = '#fff'; g.beginPath(); g.arc(xe, y, 2.4, 0, 7); g.fill();
+        g.fillStyle = 'rgba(200,208,224,.85)'; g.font = '700 12px "Roboto",system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; if ('letterSpacing' in g) g.letterSpacing = '4px';
+        g.fillText('CARGANDO  ' + Math.round(p * 100) + '%', W / 2, y - 16); if ('letterSpacing' in g) g.letterSpacing = '0px'; g.globalAlpha = 1;
+        if (p >= 1 && !ev.f) { ev.f = 1; emit(30, x1, y, 220, ['#8fbcff', '#ffffff', '#1677FF'], 0.6); flash(x1, y, now, 0.35, 400); }
       }
       /* oscurecer un poco al tocar */
       if (run) { g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = `rgba(5,9,31,${0.25 * Math.sin(Math.PI * seg(t, 0, 900))})`; g.fillRect(0, 0, W, H); }
