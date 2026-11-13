@@ -265,15 +265,14 @@ export function createStage(canvas, opts = {}) {
     return [clamp(tmp.x * 100 + W / 2, -50, W + 50), clamp(tmp.z * 100 + H / 2, -50, H + 50)];
   }
 
-  function onEvent(e) {
+  function onEvent(e, mine = true) {
     const fxc = S.fx;
     if (e.k === 'hit') {
       const c = fxc || [e.i ? '#7fb0ff' : '#ff7088', '#ffffff'];
       burst(wx(e.x), wz(e.y), 0.16, c, fxc ? 34 : 18, 2.6 + e.sp / 500); shock(e.x, e.y, col(c[0]), 1);
-      S.shake = Math.min(1, S.shake + 0.35 + e.sp / 2500); S.kick = Math.min(1, S.kick + 0.5);
       const p = pads[e.i]; p.userData.sq = 1;
-    } else if (e.k === 'wall') { burst(wx(e.x), wz(e.y), 0.12, ['#ffffff', '#9fc0ff'], 6, 1.6); S.shake = Math.min(1, S.shake + 0.05); }
-    else if (e.k === 'point') { burst(wx(e.x), wz(e.y), 0.2, e.w ? ['#7fb0ff', '#fff', '#2f7bff'] : ['#ff7088', '#fff', '#ff2d4f'], 70, 4.2, 1.6); shock(e.x, e.y, e.w ? 0x2f7bff : 0xff2d4f, 2); S.shake = 1; }
+    } else if (e.k === 'wall') { burst(wx(e.x), wz(e.y), 0.12, ['#ffffff', '#9fc0ff'], 6, 1.6); }
+    else if (e.k === 'point') { burst(wx(e.x), wz(e.y), 0.2, e.w ? ['#7fb0ff', '#fff', '#2f7bff'] : ['#ff7088', '#fff', '#ff2d4f'], 70, 4.2, 1.6); shock(e.x, e.y, e.w ? 0x2f7bff : 0xff2d4f, 2); if (mine) S.shake = 1; }
     else if (e.k === 'ability') { const c = ABIL[e.a].col; burst(0, 0, 0.3, [c, '#fff'], 60, 3.6, 1.4); shock(W / 2, H / 2, col(c), 2.4); S.kick = 1; }
   }
 
