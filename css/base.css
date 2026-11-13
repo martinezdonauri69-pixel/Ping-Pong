@@ -146,9 +146,20 @@ input[type=range]{width:100%;accent-color:var(--cyan)}
 #err{position:fixed;left:8px;right:8px;top:calc(var(--sat) + 6px);z-index:95;background:#7a0d20;border:1px solid #ff6b7a;border-radius:10px;padding:8px 12px;font-size:12px;display:none}
 
 /* ---------- Splash ---------- */
-#splash{background:radial-gradient(ellipse at 50% 40%,#10226e 0,#04061a 70%);z-index:30;gap:14px}
-#splash .lg{width:min(46vw,36vh,230px);aspect-ratio:1;border-radius:50%;box-shadow:0 6px 26px rgba(0,0,0,.5),0 0 18px rgba(255,45,79,.18),0 0 28px rgba(47,123,255,.18);animation:float 3.2s ease-in-out infinite}
-#splash h1{margin:0;font-size:clamp(22px,6vw,38px);letter-spacing:.35em;text-indent:.35em;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+#splash{background:radial-gradient(ellipse at 50% 42%,#0d1a58 0,#04061a 72%);z-index:30;gap:0}
+/* la portada es minima: el logo y el titulo los revela la intro */
+#splash img.lg,#splash h1{display:none}
+#splash::before{content:"";display:block;width:22px;height:22px;border-radius:50%;margin-bottom:54px;
+  background:radial-gradient(circle at 35% 30%,#fff,#dfe4f5);animation:spBall 1s cubic-bezier(.33,0,.67,1) infinite alternate}
+@keyframes spBall{0%{transform:translateY(-72px)}90%{transform:translateY(0)}100%{transform:translateY(0) scale(1.14,.84)}}
+#splash #spGo{width:auto;min-height:0;aspect-ratio:auto;border-radius:999px;padding:14px 34px;
+  background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.2);color:#e8eeff;
+  font-size:15px;font-weight:800;letter-spacing:.3em;text-indent:.3em;text-shadow:none;
+  box-shadow:-12px 0 20px -14px rgba(255,45,79,.45),12px 0 20px -14px rgba(47,123,255,.45);
+  animation:spPulse 2.2s ease-in-out infinite}
+#splash #spGo:hover{filter:none}
+#splash #spGo:active{transform:scale(.97);background:rgba(255,255,255,.12)}
+@keyframes spPulse{50%{opacity:.55}}
 @keyframes float{50%{transform:translateY(-8px) rotateZ(1.5deg)}}
 @keyframes pulse{50%{transform:scale(1.05)}}
 .pulse{animation:pulse 1.4s ease-in-out infinite}
