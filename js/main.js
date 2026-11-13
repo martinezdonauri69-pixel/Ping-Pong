@@ -50,10 +50,9 @@ async function boot() {
   if (stage) { Game.init(stage); stage.setLook(lookFor(P.eq, P.inv)); }
   Lobby.bindMain({ play, mode: () => (Game.active() ? 'game' : 'lobby') });
   Lobby.build();
-  /* intro obligatoria: arranca sola. El sonido se activa con el primer toque (regla del navegador). */
+  /* portada + intro cinematografica: se muestra una sola vez; el menu aparece al terminar (o al saltarla) */
   const noIntro = new URLSearchParams(location.search).has('autostart');
-  const introP = noIntro ? Promise.resolve() : import('./intro.js').then((I) => Promise.race([I.play(), new Promise((r) => setTimeout(r, 8000))])).catch((e) => console.warn('intro', e));
-  ['pointerdown', 'touchstart', 'keydown'].forEach((ev) => addEventListener(ev, () => { unlock(); applyVol(); }, { once: true, passive: true, capture: true }));
+  const introP = noIntro ? Promise.resolve() : import('./intro.js').then((I) => I.play()).catch((e) => { console.warn('intro', e); document.querySelectorAll('#intro').forEach((n) => n.remove()); });
   const rs = restore().catch(() => {});
   /* bucle */
   const loop = (ts) => {
@@ -77,7 +76,6 @@ async function boot() {
   
   const enter = async () => {
     await introP;
-    document.querySelectorAll('#intro').forEach((n) => n.remove());
     unlock(); applyVol(); music('menu'); if (spl) spl.remove();
     Lobby.show(true); Lobby.render();
     watchInvites(() => (Game.active() ? 'game' : 'lobby')); bus.on('auth', () => setTimeout(() => watchInvites(() => (Game.active() ? 'game' : 'lobby')), 300));
