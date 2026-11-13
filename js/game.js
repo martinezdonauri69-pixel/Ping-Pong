@@ -45,7 +45,7 @@ function buildHud(sideLeft) {
   h.innerHTML = '<div class="hud-top"><button class="b3d ghost ib3d" id="hPause" aria-label="' + esc(t('pause')) + '">❚❚</button>' +
     '<div class="score3d"><span class="nm">' + nm(li) + '</span><span class="n a" id="hs0">0</span><span class="sep">:</span><span class="n b" id="hs1">0</span><span class="nm">' + nm(ri) + '</span></div>' +
     '<div class="tag">' + (G.mode === 'ranked' ? '<span class="qtag">🏆 ' + esc(t('ranked')) + '</span>' : '') + '</div></div>' +
-    '<div id="cdown"></div><div id="fxtxt"></div>';
+    '<div id="cdown"></div><div id="fxtxt"></div><div id="hFps" class="fps">-- FPS</div>';
   $('app').appendChild(h); G.hud = h; G.sideLeft = sideLeft;
   $('hPause').onclick = () => { sfx('click'); pause(true); };
 }
@@ -108,9 +108,18 @@ function onNetMsg(m) {
   else if (m.t === 'bye') { if (!G.ended) finish(true, true); }
 }
 
+/* ---------------------------------------------------------------- contador de FPS */
+let fpsN = 0, fpsT = 0;
+function fpsTick() {
+  const n = performance.now(); fpsN++;
+  if (!fpsT) fpsT = n;
+  if (n - fpsT >= 500) { const e = $('hFps'); if (e) { const f = Math.round(fpsN * 1000 / (n - fpsT)); e.textContent = f + ' FPS'; e.style.color = f >= 50 ? '#7dffb0' : f >= 30 ? '#ffd21f' : '#ff6b6b'; } fpsN = 0; fpsT = n; }
+}
+
 /* ---------------------------------------------------------------- bucle: lo llama main.js cada cuadro */
 export function frame(dt) {
   if (!G || !M) return;
+  fpsTick();
   const online = G.online;
   if (!G.ended && !M.paused) {
     if (G.guest) {
@@ -122,15 +131,15 @@ export function frame(dt) {
   }
   /* eventos → sonido, efectos y marcador */
   while (M.ev.length) {
-    const e = M.ev.shift(); stage.onEvent(e);
+    const e = M.ev.shift(); stage.onEvent(e, G.mode === 'local' || e.w === (G.guest ? 1 : 0));
     if (e.k === 'hit') {
-      sfx(e.i ? 'pong' : 'ping'); vib(12);
+      sfx(e.i ? 'pong' : 'ping');
       if (!G.guest) { G.rally++; G.maxRally = Math.max(G.maxRally, G.rally); }
     }
     else if (e.k === 'wall') sfx('bounce');
     else if (e.k === 'point') {
       sfx('point'); setScore(); if (!G.guest) { if (e.w === 0) G.myPts++; G.rally = 0; }
-      if (G.mode !== 'local') vib(e.w === 0 ? 40 : 120);
+      if (G.mode === 'local' || e.w === (G.guest ? 1 : 0)) vib(40);
     } else if (e.k === 'ability') {
       say(t('ab_' + e.a), ABIL[e.a].col); sfx(e.a === 'turbo' || e.a === 'fuego' ? 'turbo' : 'whoosh'); if (!G.guest && e.who === 0) G.orbs++;
     } else if (e.k === 'over' && !G.guest) {
