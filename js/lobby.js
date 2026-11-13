@@ -220,21 +220,21 @@ export function showResult(res, again) {
   const ranked = res.mode === 'ranked', r0 = rankOf(res.rp0), r1 = rankOf(res.rp1), up = ranked && res.win && r1.i > r0.i, dn = ranked && !res.win && r1.i < r0.i, tierUp = up && r1.t > r0.t;
   const o = document.createElement('div'); o.id = 'result'; o.className = 'scr dim';
   const shown = ranked ? r0 : r1, gc = TI[(up ? r1 : r0).t].gl; o.style.setProperty('--gc', gc);
-  const title = res.quit ? t('quit_done') : res.win ? t('victory') : t('defeat');
+  const title = res.quit ? t('quit_done') : res.draw ? t('draw') : res.win ? t('victory') : t('defeat');
   o.innerHTML = (res.win && !res.quit ? '<div class="crown" style="position:relative;top:0;font-size:46px;animation:crown 1.2s .3s both">👑</div>' : '') +
-    '<div class="stage"><i class="ring"></i><i class="ring r2"></i><i class="ring r3"></i><span id="rsB">' + (ranked ? badge(shown.t, shown.d, 190) : '<span style="font-size:120px">' + (res.win ? '🏆' : '💪') + '</span>') + '</span></div>' +
+    '<div class="stage"><i class="ring"></i><i class="ring r2"></i><i class="ring r3"></i><span id="rsB">' + (ranked ? badge(shown.t, shown.d, 190) : '<span style="font-size:120px">' + (res.win ? '🏆' : res.draw ? '🤝' : '💪') + '</span>') + '</span></div>' +
     '<h2 style="color:' + (res.win && !res.quit ? 'var(--gold)' : '#ff9aa8') + '">' + esc(title) + '</h2><div class="muted" style="font-size:15px">' + res.sc[0] + ' : ' + res.sc[1] + '</div>' +
-    (ranked ? '<div class="pts ' + (res.d >= 0 ? 'up' : 'dn') + '" id="rsP">' + (res.d >= 0 ? '+' : '') + '0 RP</div><div class="bar"><i id="rsBar"></i></div><div class="tiny" id="rsN">' + esc(rankName(r0)) + '</div>' : '') +
+    (ranked ? '<div class="pts ' + (res.d >= 0 ? 'up' : 'dn') + '" id="rsP">' + (res.d > 0 ? '+' : '') + '0 RP</div><div class="bar"><i id="rsBar"></i></div><div class="tiny" id="rsN">' + esc(rankName(r0)) + '</div>' : '') +
     '<div class="rew">' + (res.pc ? '<span class="cur"><i class="coin3d">$</i>+' + res.pc + '</span>' : '') + (res.xp ? '<span class="chip">+' + res.xp + ' XP</span>' : '') + (res.shield ? '<span class="chip">🛡️ ' + esc(t('shield_used')) + '</span>' : '') + (res.boost ? '<span class="chip">🚀 ×1.5</span>' : '') + (res.lvUp ? '<span class="chip" style="color:var(--gold)">⬆ ' + esc(t('lv')) + ' ' + res.lvUp + '</span>' : '') + '</div>' +
     '<div class="btns"><button class="b3d blue lg" id="rsOk">' + esc(t('continue')) + '</button>' + (again ? '<button class="b3d green lg" id="rsAg">▶ ' + esc(t('play_again')) + '</button>' : '') + '</div>';
   $('app').appendChild(o);
   const done = (fn) => () => { sfx('click'); o.remove(); fn && fn(); };
   $('rsOk').onclick = done(); if (again) $('rsAg').onclick = done(again);
-  sfx(res.win ? 'win' : 'lose'); if (res.win && !res.quit) confetti(o.querySelector('.stage'), ['#ffd400', '#fff', '#19e6a0', gc]);
-  if (res.quit || !ranked) return;
+  sfx(res.win ? 'win' : res.draw ? 'point' : 'lose'); if (res.win && !res.quit) confetti(o.querySelector('.stage'), ['#ffd400', '#fff', '#19e6a0', gc]);
+  if (!ranked) return;
   /* puntos y barra */
   setTimeout(() => {
-    countUp($('rsP'), 0, Math.abs(res.d), 900, res.d >= 0 ? '+' : '−'); $('rsP').insertAdjacentText('beforeend', ''); const p = $('rsP'); const fin = () => { p.textContent = (res.d >= 0 ? '+' : '−') + Math.abs(res.d) + ' RP'; }; setTimeout(fin, 950);
+    countUp($('rsP'), 0, Math.abs(res.d), 900, res.d > 0 ? '+' : res.d < 0 ? '−' : ''); $('rsP').insertAdjacentText('beforeend', ''); const p = $('rsP'); const fin = () => { p.textContent = (res.d > 0 ? '+' : res.d < 0 ? '−' : '') + Math.abs(res.d) + ' RP'; }; setTimeout(fin, 950);
     const bar = $('rsBar'); bar.style.transition = 'none'; bar.style.width = Math.round(rankProg(res.rp0) * 100) + '%'; void bar.offsetWidth; bar.style.transition = '';
     if (r1.i === r0.i) bar.style.width = Math.round(rankProg(res.rp1) * 100) + '%';
     else { bar.style.width = up ? '100%' : '0%'; }
