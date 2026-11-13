@@ -80,7 +80,7 @@ function emojiTexture(ic) {
 export function createStage(canvas, opts = {}) {
   let hq = opts.hq !== false;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', alpha: false });
-  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.92;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = hq; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene();
@@ -103,7 +103,7 @@ export function createStage(canvas, opts = {}) {
   const key = new THREE.DirectionalLight(0xffffff, 2.1); key.position.set(2.5, 9, 3.5);
   key.castShadow = hq; key.shadow.mapSize.set(1024, 1024); key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
   Object.assign(key.shadow.camera, { left: -5.5, right: 5.5, top: 4, bottom: -4, near: 1, far: 22 }); scene.add(key);
-  const lA = new THREE.PointLight(0xff2d4f, 7, 6, 1.8), lB = new THREE.PointLight(0x2f7bff, 7, 6, 1.8), lBall = new THREE.PointLight(0xffffff, 6, 4, 1.8);
+  const lA = new THREE.PointLight(0xff2d4f, 7, 6, 1.8), lB = new THREE.PointLight(0x2f7bff, 7, 6, 1.8), lBall = new THREE.PointLight(0xffffff, 1.6, 3, 2);
   lA.position.set(-4, 0.9, 0); lB.position.set(4, 0.9, 0); scene.add(lA, lB, lBall);
 
   /* ---- arena: suelo, anillos de neón y chispas flotantes ---- */
@@ -175,14 +175,14 @@ export function createStage(canvas, opts = {}) {
 
   /* paletas */
   const padGeo = new THREE.CapsuleGeometry(0.1, 1, 8, 20); padGeo.rotateX(Math.PI / 2);
-  const padMats = [0, 1].map(() => new THREE.MeshStandardMaterial({ roughness: 0.22, metalness: 0.6, emissiveIntensity: 0.45, envMapIntensity: 1.2 }));
+  const padMats = [0, 1].map(() => new THREE.MeshStandardMaterial({ roughness: 0.35, metalness: 0.4, emissiveIntensity: 0.25, envMapIntensity: 0.7 }));
   const pads = padMats.map((mt) => { const m = new THREE.Mesh(padGeo, mt); m.castShadow = true; m.position.y = 0.13; tableG.add(m); return m; });
-  const padGlow = [0, 1].map(() => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending })); s.scale.set(1.2, 1.2, 1); s.position.y = 0.1; tableG.add(s); return s; });
+  const padGlow = [0, 1].map(() => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, transparent: true, opacity: 0.18, depthWrite: false, blending: THREE.AdditiveBlending })); s.scale.set(1.2, 1.2, 1); s.position.y = 0.1; tableG.add(s); return s; });
 
   /* pelota + estela + sombra de contacto */
-  const ballMat = new THREE.MeshStandardMaterial({ roughness: 0.2, metalness: 0.08, emissiveIntensity: 0.3, envMapIntensity: 1 });
+  const ballMat = new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0.02, emissiveIntensity: 0.06, envMapIntensity: 0.35 });
   const ball = new THREE.Mesh(new THREE.SphereGeometry(0.125, 36, 24), ballMat); ball.castShadow = true; tableG.add(ball);
-  const ballHalo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, transparent: true, opacity: 0.6, depthWrite: false, blending: THREE.AdditiveBlending })); ballHalo.scale.set(0.9, 0.9, 1); tableG.add(ballHalo);
+  const ballHalo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending })); ballHalo.scale.set(0.6, 0.6, 1); tableG.add(ballHalo);
   const blob = new THREE.Mesh(new THREE.CircleGeometry(0.16, 20), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.4, depthWrite: false })); blob.rotation.x = -Math.PI / 2; blob.position.y = 0.006; tableG.add(blob);
   const TRN = 18, trail = [];
   for (let i = 0; i < TRN; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); tableG.add(s); trail.push(s); }
@@ -197,7 +197,7 @@ export function createStage(canvas, opts = {}) {
   /* ---------------------------------------------------------------- LOBBY (pelota y paletas flotando) */
   const lobbyG = new THREE.Group(); lobbyG.scale.setScalar(0.62); scene.add(lobbyG);
   const hBall = new THREE.Mesh(new THREE.SphereGeometry(0.85, 48, 32), ballMat); hBall.castShadow = false; lobbyG.add(hBall);
-  const hHalo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending })); hHalo.scale.set(5.2, 5.2, 1); lobbyG.add(hHalo);
+  const hHalo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, transparent: true, opacity: 0.08, depthWrite: false, blending: THREE.AdditiveBlending })); hHalo.scale.set(3.6, 3.6, 1); lobbyG.add(hHalo);
   const hPads = [0, 1].map((i) => { const m = new THREE.Mesh(padGeo, padMats[i]); m.scale.set(2.2, 2.2, 2.1); lobbyG.add(m); return m; });
   const hRings = [0, 1, 2].map((i) => { const m = new THREE.Mesh(new THREE.TorusGeometry(1.6 + i * 0.45, 0.022, 8, 80), new THREE.MeshBasicMaterial({ color: [0xff2d4f, 0x2f7bff, 0x19d3ff][i], transparent: true, opacity: 0.85 })); lobbyG.add(m); return m; });
   const hSat = [0, 1].map((i) => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 12), new THREE.MeshBasicMaterial({ color: i ? 0x2f7bff : 0xff2d4f })); lobbyG.add(m); return m; });
@@ -310,7 +310,7 @@ export function createStage(canvas, opts = {}) {
         p.scale.set(0.75 + u.sq * 0.3, 1.1 - u.sq * 0.15, len);
         p.position.set(wx(i ? PX1 + 7 : PX0 - 7), 0.13, wz(pd.y));
         padGlow[i].position.set(p.position.x, 0.08, p.position.z); padGlow[i].scale.set(0.9 + u.sq * 0.5, pd.h / 100 * 1.4, 1);
-        padMats[i].emissiveIntensity = (pd.slow > 0 ? 1.2 : 0.45) + u.sq * 0.9;
+        padMats[i].emissiveIntensity = (pd.slow > 0 ? 0.6 : 0.25) + u.sq * 0.35;
         if (pd.slow > 0) padMats[i].emissive.set(0x7fe3ff); else padMats[i].emissive.copy(padMats[i].color);
       });
       lA.position.set(pads[0].position.x + 0.3, 1.1, pads[0].position.z); lB.position.set(pads[1].position.x - 0.3, 1.1, pads[1].position.z);
@@ -319,14 +319,14 @@ export function createStage(canvas, opts = {}) {
         ball.position.set(wx(B.x), hop, wz(B.y)); ball.rotation.z -= B.vx * dt * 0.012; ball.rotation.x += B.vy * dt * 0.012;
         ballHalo.position.copy(ball.position); lBall.position.set(ball.position.x, hop + 0.3, ball.position.z);
         const hot = B.hot > 0, ghost = B.gh > 0;
-        ballMat.opacity = ghost ? 0.18 : 1; ballMat.transparent = ghost; ballMat.emissiveIntensity = hot ? 1.3 : 0.3;
-        ballHalo.material.opacity = ghost ? 0.1 : hot ? 1 : 0.5; ballHalo.scale.setScalar(hot ? 1.5 : 0.9);
-        lBall.intensity = hot ? 14 : 6; lBall.color.set(hot ? 0xffb000 : (S.look.ballCols ? S.look.ballCols[0] : 0xcfe0ff));
+        ballMat.opacity = ghost ? 0.18 : 1; ballMat.transparent = ghost; ballMat.emissiveIntensity = hot ? 0.45 : 0.06;
+        ballHalo.material.opacity = ghost ? 0.05 : hot ? 0.3 : 0.1; ballHalo.scale.setScalar(hot ? 1 : 0.6);
+        lBall.intensity = hot ? 4 : 1.6; lBall.color.set(hot ? 0xffb000 : (S.look.ballCols ? S.look.ballCols[0] : 0xcfe0ff));
         blob.position.set(ball.position.x, 0.006, ball.position.z); blob.scale.setScalar(1 + (hop - 0.125) * 1.2); blob.material.opacity = 0.45 - (hop - 0.125) * 0.5;
         trailPts.push(ball.position.clone()); if (trailPts.length > TRN) trailPts.shift();
         trail.forEach((s, i) => {
           const p = trailPts[i]; if (!p || serveHide(m)) { s.visible = false; return; }
-          const k = i / TRN; s.visible = true; s.position.copy(p); s.scale.setScalar(0.1 + k * 0.45); s.material.opacity = k * (ghost ? 0.1 : hot ? 0.9 : 0.55);
+          const k = i / TRN; s.visible = true; s.position.copy(p); s.scale.setScalar(0.08 + k * 0.3); s.material.opacity = k * (ghost ? 0.05 : hot ? 0.4 : 0.2);
           if (hot) s.material.color.set(0xffa000); else s.material.color.copy(col((S.look.ballCols || ['#9fc0ff'])[0]));
         });
       }
