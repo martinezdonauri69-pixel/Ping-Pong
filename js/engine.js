@@ -40,7 +40,7 @@ const mkPaddle = () => ({ y: H / 2, ty: H / 2, h: 90, slow: 0, big: 0, small: 0 
 /* opts: { mode:'bot'|'local'|'host', L:1..100, win:11 } */
 export function createMatch(opts) {
   const m = {
-    mode: opts.mode, L: opts.L || 1, win: opts.win || 11,
+    mode: opts.mode, L: opts.L || 1, win: opts.win || 11, limit: opts.limit || 0, tl: opts.limit || 0, deuce: opts.deuce !== false,
     sp: speedFor(opts.mode === 'local' || opts.mode === 'host' ? 40 : opts.L || 1),
     Q: opts.mode === 'bot' ? botQuality(opts.L || 1) : 0,
     P: [mkPaddle(), mkPaddle()], B: null, sc: [0, 0], orb: null, orbT: 4,
@@ -82,13 +82,17 @@ export function createMatch(opts) {
   const point = (w) => {
     m.sc[w]++; m.ev.push({ k: 'point', w, x: m.B.x, y: m.B.y });
     const a = m.sc[0], c = m.sc[1];
-    if ((a >= m.win || c >= m.win) && Math.abs(a - c) >= 2) { m.over = true; m.winner = a > c ? 0 : 1; m.ev.push({ k: 'over', w: m.winner }); return; }
+    if ((a >= m.win || c >= m.win) && (!m.deuce || Math.abs(a - c) >= 2)) { m.over = true; m.winner = a > c ? 0 : 1; m.ev.push({ k: 'over', w: m.winner }); return; }
     m.serve(w ? -1 : 1);
   };
 
   m.update = (dt) => {
     if (m.over || m.paused) return;
     m.t += dt;
+    if (m.limit) {   /* reloj: al acabarse gana quien tenga mas puntos; si hay igualdad es empate (winner -1) */
+      m.tl = Math.max(0, m.tl - dt);
+      if (m.tl <= 0) { const a = m.sc[0], c = m.sc[1]; m.over = true; m.winner = a > c ? 0 : c > a ? 1 : -1; m.ev.push({ k: 'over', w: m.winner, time: true }); return; }
+    }
     const { P, B } = m;
     P.forEach((p, i) => {
       p.slow = Math.max(0, p.slow - dt); p.big = Math.max(0, p.big - dt); p.small = Math.max(0, p.small - dt);
