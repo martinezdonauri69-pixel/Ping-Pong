@@ -11,7 +11,6 @@ import * as Game from './game.js';
 import * as Lobby from './lobby.js';
 import * as Tuto from './tutorial.js';
 import { NET, watchInvites } from './online.js';
-import * as Intro from './intro.js';
 
 setSfx(sfx);
 const err = (m) => { const e = $('err'); if (e) { e.textContent = String(m).slice(0, 160); e.style.display = 'block'; setTimeout(() => { e.style.display = 'none'; }, 5000); } };
@@ -45,12 +44,16 @@ function startTutorial() {
 
 async function boot() {
   applyLook(); await initLang();
-  const spl = $('splash'); const go = $('spGo'); if (go) go.textContent = t('tap_start');
+  const spl = $('splash'); if (spl) { spl.innerHTML = ''; spl.id = 'splash0'; spl.className = 'scr'; spl.style.cssText = 'background:radial-gradient(ellipse at 50% 42%,#0d1a58 0,#04061a 72%);z-index:30'; }
   const cv = $('gl');
   try { stage = createStage(cv, { hq: SET.hq }); } catch (e) { console.warn('WebGL', e); err(t('err_webgl')); }
   if (stage) { Game.init(stage); stage.setLook(lookFor(P.eq, P.inv)); }
   Lobby.bindMain({ play, mode: () => (Game.active() ? 'game' : 'lobby') });
   Lobby.build();
+  /* intro obligatoria: arranca sola. El sonido se activa con el primer toque (regla del navegador). */
+  const noIntro = new URLSearchParams(location.search).has('autostart');
+  const introP = noIntro ? Promise.resolve() : import('./intro.js').then((I) => Promise.race([I.play(), new Promise((r) => setTimeout(r, 8000))])).catch((e) => console.warn('intro', e));
+  ['pointerdown', 'touchstart', 'keydown'].forEach((ev) => addEventListener(ev, () => { unlock(); applyVol(); }, { once: true, passive: true, capture: true }));
   const rs = restore().catch(() => {});
   /* bucle */
   const loop = (ts) => {
@@ -68,21 +71,19 @@ async function boot() {
   bus.on('celebrate', (c) => stage && stage.celebrate(c));
   bus.on('tutorial', startTutorial);
   bus.on('banmsg', (m) => modal({ title: '⛔', body: String(m || ''), buttons: [{ t: t('ok') }] }));
-  bus.on('lang', () => { const g = $('spGo'); if (g) g.textContent = t('tap_start'); });
   NET.onStart = (role, opp) => { if (Game.active()) return; play({ mode: 'online', role, opp }); };
   /* pantalla de inicio: un toque (necesario para que el teléfono deje sonar el audio) */
   await Promise.race([rs, new Promise((r) => setTimeout(r, 3500))]);
   
   const enter = async () => {
-    spl.removeEventListener('click', enter); unlock(); applyVol();
-    if (!new URLSearchParams(location.search).has('autostart')) { try { await Intro.play(); } catch (e) { console.warn('intro', e); } }
-    music('menu'); spl.remove();
+    await introP;
+    document.querySelectorAll('#intro').forEach((n) => n.remove());
+    unlock(); applyVol(); music('menu'); if (spl) spl.remove();
     Lobby.show(true); Lobby.render();
     watchInvites(() => (Game.active() ? 'game' : 'lobby')); bus.on('auth', () => setTimeout(() => watchInvites(() => (Game.active() ? 'game' : 'lobby')), 300));
     if (!P.tuto) setTimeout(startTutorial, 700);
   };
-  spl.addEventListener('click', enter);
-  if (new URLSearchParams(location.search).has('autostart')) enter();
+  enter();
   window.__dmr = { stage, play, Game, Lobby, Tuto, P };   /* solo para pruebas locales */
   if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') delete window.__dmr;
 }
