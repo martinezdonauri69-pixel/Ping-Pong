@@ -60,7 +60,7 @@ async function boot() {
   const loop = (ts) => {
     requestAnimationFrame(loop);
     const dt = Math.min(0.05, (ts - last) / 1000 || 0.016); last = ts;
-    if (!stage) return;
+    if (!stage || window.__dmrIntroActive) return;
     if (Game.active()) Game.frame(dt); else if (!document.getElementById('scShop')) stage.frame(dt, null, {});   /* con la tienda abierta el fondo 3D se detiene: así toda la GPU se usa en la tienda */
   };
   requestAnimationFrame(loop);
