@@ -1,11 +1,12 @@
 /* game.js · una partida completa: cuenta regresiva, controles, marcador, sonidos, pausa y resultado */
 import { t } from './i18n.js';
-import { P, SET, save, addXp, lvl } from './state.js';
+import { P, save, addXp } from './state.js';
 import { createMatch, ABIL, H } from './engine.js';
 import { rankOf, rankDiff, TI } from './ranks.js';
 import { track, checkAch } from './quests.js';
 import { NET, nsend, cleanup as netCleanup } from './online.js';
-import { $, esc, clamp, sfx, vib, modal, bus, sleep } from './util.js';
+import { $, esc, clamp, sfx, vib, sleep, toast } from './util.js';
+import { lookFor, padStats, ZERO_ST } from './data/catalog.js';
 import { music } from './audio.js';
 
 let stage = null, M = null, G = null;
@@ -20,11 +21,15 @@ export async function start(opts) {
   const mode = opts.mode, online = mode === 'online', guest = online && opts.role === 'g';
   const L = mode === 'ranked' ? rankDiff(P.rp) : mode === 'train' ? LEVEL_OF[opts.diff || 'mid'] : 40;
   /* clasificatoria: primero a 7 puntos o, a los 60 s, gana quien tenga mas */
-  M = createMatch({ mode: mode === 'local' ? 'local' : online ? (guest ? 'guest' : 'host') : 'bot', L, win: mode === 'ranked' ? 7 : 11, limit: mode === 'ranked' ? 60 : 0, deuce: mode !== 'ranked' });
+  /* ventajas de la paleta equipada (solo cuenta la tuya; en 2 jugadores nadie tiene ventaja) */
+  const myPad = padStats(P.eq && P.eq.pad, P.inv), opPad = online && opts.opp ? padStats(opts.opp.pad, null) : ZERO_ST;
+  const pst = mode === 'local' ? [ZERO_ST, ZERO_ST] : guest ? [opPad, myPad] : [myPad, opPad];
+  M = createMatch({ pst, mode: mode === 'local' ? 'local' : online ? (guest ? 'guest' : 'host') : 'bot', L, win: mode === 'ranked' ? 7 : 11, limit: mode === 'ranked' ? 60 : 0, deuce: mode !== 'ranked' });
   const names = mode === 'local' ? [t('player_n', { n: 1 }), t('player_n', { n: 2 })]
     : online ? (guest ? [opts.opp.name, P.name] : [P.name, opts.opp.name]) : [P.name, mode === 'ranked' ? t('rival') : t('bot_' + (opts.diff || 'mid'))];
   G = { opts, mode, online, guest, names, L, rally: 0, maxRally: 0, orbs: 0, myPts: 0, ptr: {}, snap: null, snapT: 0, sendT: 0, inT: 0, ended: false, paused: false, t0: performance.now(), quit: false };
   const flip = guest;
+  stage.setLook(lookFor(P.eq, P.inv, online && opts.opp ? opts.opp.pad : ''));   /* tu paleta y la del rival */
   stage.setFlip(flip); stage.setMode('game'); stage.resetTrail();
   const sideLeft = flip ? 1 : 0;     /* de quién es el lado izquierdo de la pantalla */
   G.flip = flip;
@@ -35,7 +40,7 @@ export async function start(opts) {
   if (online) { NET.onMsg = onNetMsg; NET.onLost = () => { if (G && !G.ended) finish(true, true); }; }
   await countdown();
   if (!G) return;
-  M.paused = false;
+  M.paused = G.paused;   /* si el jugador pausó durante la cuenta atrás, sigue en pausa */
 }
 
 /* ---------------------------------------------------------------- HUD */
@@ -94,7 +99,7 @@ function pause(on) {
   const s = document.createElement('div'); s.id = 'pause'; s.className = 'scr dim anim';
   s.innerHTML = '<div class="pnl" style="max-width:340px"><h2>' + esc(t('pause')) + '</h2>' + (G.online ? '<div class="muted c">' + esc(t('online_pause')) + '</div>' : '') +
     '<button class="b3d green lg block" id="pkResume">▶ ' + esc(t('resume')) + '</button><button class="b3d red block" id="pkQuit">🏳 ' + esc(t('quit')) + '</button>' +
-    (G.mode === 'ranked' ? rkGuide() : '') + '</div>';
+    '</div>';
   $('app').appendChild(s);
   $('pkResume').onclick = () => { sfx('click'); pause(false); };
   $('pkQuit').onclick = () => { sfx('click'); s.remove(); G.quit = true; finish(false, false, true); };
@@ -164,7 +169,7 @@ function finish(win, lost, quit, draw) {
   if (G.online && !lost && !G.guest && !quit) { /* ya se avisó */ }
   if (G.online && quit) nsend({ t: 'bye' });
   const win2 = quit ? false : win;
-  const res = (quit && mode !== 'ranked') || opts.tutorial ? { mode, quit: true, skip: true, win: false, rp0: P.rp, rp1: P.rp, d: 0, pc: 0, xp: 0, lvUp: 0, sc: M.sc.slice() } : settle(mode, win2, quit, !!draw);
+  const res = (quit && mode !== 'ranked') || opts.tutorial || lost ? { mode, quit: true, skip: true, win: false, rp0: P.rp, rp1: P.rp, d: 0, pc: 0, xp: 0, lvUp: 0, sc: M.sc.slice() } : settle(mode, win2, quit, !!draw);
   /* quitar controles y HUD */
   setTimeout(() => {
     offs.forEach((f) => f()); offs = [];
@@ -174,7 +179,8 @@ function finish(win, lost, quit, draw) {
     const cb = opts.onEnd; G = null; M = null;
     if (cb) cb(res);
   }, quit ? 50 : 1500);
-  if (!quit) { sfx(win2 ? 'win' : draw ? 'point' : 'lose'); say(win2 ? t('victory') : draw ? t('draw') : t('defeat'), win2 ? '#ffd400' : draw ? '#ffd21f' : '#ff7088'); if (win2) stage.celebrate(['#ffd400', '#ffffff', '#19e6a0']); }
+  if (lost) toast(t('opp_left'), 'bad');          /* el rival se fue: sin premios (evita abusos) */
+  if (!quit && !lost) { sfx(win2 ? 'win' : draw ? 'point' : 'lose'); say(win2 ? t('victory') : draw ? t('draw') : t('defeat'), win2 ? '#ffd400' : draw ? '#ffd21f' : '#ff7088'); if (win2) stage.celebrate(['#ffd400', '#ffffff', '#19e6a0']); }
 }
 
 /* recompensas, rango, estadísticas y misiones */
@@ -182,13 +188,6 @@ function finish(win, lost, quit, draw) {
 const rpBase = () => Math.round((TI[rankOf(P.rp).t].cost || 320) * 0.22);                         /* victoria base */
 const lossBonus = (pts, b) => Math.round(b * ({ 4: 0.2, 5: 0.3, 6: 0.4 }[pts] || 0));              /* perder con 4+ puntos */
 const quitPenalty = (pts, b) => (pts >= 5 ? 0 : Math.round(b * 1.5 * (5 - pts) / 5));            /* rendirse: baja la multa con cada punto */
-function rkGuide() {
-  const b = rpBase(), pts = M ? M.sc[G.guest ? 1 : 0] : 0, pen = Math.min(quitPenalty(pts, b), P.rp - rankOf(P.rp).tierLo);
-  const row = (ic, k, v, c) => '<div class="rk"><span>' + ic + ' ' + esc(t(k)) + '</span><b class="' + c + '">' + v + '</b></div>';
-  return '<div class="rkg">' + row('🏆', 'rk_win', '+' + (b + Math.min(9, P.streak * 3)), 'up') + row('🤝', 'rk_draw', '+' + Math.round(b * 0.4), 'up') +
-    row('💪', 'rk_lose4', '+' + lossBonus(4, b) + ' → +' + lossBonus(6, b), 'up') + row('😶', 'rk_lose3', '0', '') + row('🏳', 'rk_quit', pen ? '−' + pen : '0', pen ? 'dn' : '') + '</div>' +
-    (pts >= 5 ? '<div class="muted c">' + esc(t('rk_safe')) + '</div>' : '');
-}
 function settle(mode, win, quit, draw) {
   const r = { mode, win, quit: !!quit, rp0: P.rp, rp1: P.rp, d: 0, pc: 0, xp: 0, lvUp: 0, shield: false, boost: false, streak: P.streak, sc: M ? M.sc.slice() : [0, 0] };
   const pts = M ? M.sc[G.guest ? 1 : 0] : 0;
@@ -215,7 +214,9 @@ function settle(mode, win, quit, draw) {
       } else if (draw) {                       /* tabla: se premia la lucha si ambos jugaron de verdad */
         const d = pts >= 3 ? Math.round(base * 0.4) : 0; P.rp += d; r.d = d;
       } else if (quit) {                       /* rendirse: multa que baja con cada punto; con 5+ no se pierde nada */
-        const lo = rankOf(P.rp).tierLo, np = Math.max(lo, P.rp - quitPenalty(pts, base)); r.d = np - P.rp; P.rp = np;
+        const lo = rankOf(P.rp).tierLo, np = Math.max(lo, P.rp - quitPenalty(pts, base));
+        if (np < P.rp && P.shield > 0) { P.shield--; r.shield = true; r.d = 0; }   /* el Escudo evita la pérdida de puntos */
+        else { r.d = np - P.rp; P.rp = np; }
       } else {                                 /* derrota: con 4+ puntos hay bonificacion, con 3 o menos nada */
         const d = lossBonus(pts, base); P.rp += d; r.d = d;
       }
