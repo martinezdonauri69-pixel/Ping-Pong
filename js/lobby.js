@@ -12,6 +12,7 @@ import { openRanking, openFriends, openInbox, inboxCount, avatarHtml, verMark } 
 import { openAdmin } from './admin.js';
 import { invite, quickMatch } from './online.js';
 import * as Tuto from './tutorial.js';
+import * as L3 from './lobby3d.js';   /* fondo 3D: mesa, red, pelota única rebotando */
 
 let H = null;               /* manejadores que da main.js: { play(opts), mode() } */
 export const bindMain = (h) => { H = h; };
@@ -24,36 +25,55 @@ export function build() {
     <button class="prof" id="lbProf"><span id="lbAv"></span><span class="pt"><span class="nm" id="lbNm"></span><small id="lbLv"></small><div class="bar"><i id="lbXp"></i></div></span><span class="rkm" id="lbRank" role="button" tabindex="0"><span id="lbBadge"></span><b id="lbRname"></b></span></button>
     <span class="cur" id="lbCoins"><i class="coin3d">$</i><b id="lbPc">0</b></span>
     <span class="cur gm" id="lbGems"><i class="gem3d"></i><b id="lbGm">0</b></span>
-    <button class="b3d ghost ib3d" id="lbInbox" style="position:relative" data-i-ti="inbox">✉️<i class="dot" id="dInbox"></i></button>
-    <button class="b3d ghost ib3d" id="lbSet" data-i-ti="settings">⚙️</button>
+    <button class="b3d ghost ib3d" id="lbSet" style="position:relative" data-i-ti="settings">${ICO.gear}<i class="dot" id="dInbox"></i></button>
   </div>
-  <div class="side" id="lbSide"></div>
   <div class="hero"><div class="mono"><span>D</span><i>.</i><span>M</span><i>.</i><span>R</span></div><div class="ppt">PING PONG</div></div>
+  <button class="rew" id="lbRew" style="position:relative">${ICO.gift}<span id="lbRewT"></span><i class="dot" id="d_rew"></i></button>
   <button class="b3d green lg block playbtn" id="lbPlay"><span id="lbPlayT">▶</span><small id="lbPlayS"></small></button>
   <div class="modes"><div class="mlabel"><i></i><span id="lbModes"></span><i></i></div><div class="tiles" id="lbTiles"></div></div>
-  <div class="navbar" id="lbNav"></div>
-  <button class="b3d ghost sm langbtn" id="lbLang"></button>`;
+  <div class="navbar" id="lbNav"></div>`;
   $('app').appendChild(l);
   $('lbProf').onclick = () => { sfx('click'); openProfile(); };
-  $('lbInbox').onclick = () => { sfx('click'); openInbox(); };
+  $('lbRew').onclick = () => { sfx('click'); openRew(); };
   $('lbSet').onclick = () => { sfx('click'); openSettings(); };
   $('lbRank').onclick = (e) => { e.stopPropagation(); sfx('click'); openRankInfo(); };
   $('lbPlay').onclick = () => { if (Tuto.isRunning()) return; sfx('click'); H.play({ mode: 'ranked' }); };
-  $('lbLang').onclick = () => { sfx('click'); openLang(); };
   bus.on('lang', render); bus.on('profile', render); bus.on('auth', () => { render(); badges(); }); bus.on('badges', badges);
   render(); badges();
 }
 
+const SV = (d) => '<svg viewBox="0 0 24 24" class="si">' + d + '</svg>';
+const ICO = {
+  gear: SV('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'),
+  gift: SV('<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8M7.5 8a2.5 2.5 0 1 1 4.5-2 2.5 2.5 0 1 1 4.5 2"/>'),
+  train: SV('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>'),
+  local: SV('<circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20a6 6 0 0 1 12 0M15 15a5 5 0 0 1 6 5"/>'),
+  online: SV('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>'),
+  shop: SV('<path d="M3 4h2l2.4 11h10.2L20 7H6.2"/><circle cx="9" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/>'),
+  rank: SV('<path d="M6 4h12v4a6 6 0 0 1-12 0zM6 6H3v1a4 4 0 0 0 4 4M18 6h3v1a4 4 0 0 1-4 4M12 14v4M8 21h8"/>'),
+  fr: SV('<path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20a6 6 0 0 1 12 0M16 11a3 3 0 1 0 0-6M17 14a6 6 0 0 1 5 6"/>'),
+  ach: SV('<path d="M12 3l2.6 5.5 6 .8-4.4 4.2 1.1 6L12 16.6 6.7 19.5l1.1-6L3.4 9.3l6-.8z"/>'),
+  adm: SV('<path d="M3 18l2-10 5 4 2-7 2 7 5-4 2 10z"/><path d="M3 21h18"/>'),
+};
+const REW = { es: 'Misiones y regalos', en: 'Missions & gifts', pt: 'Missões e presentes', fr: 'Missions et cadeaux', de: 'Missionen & Geschenke', it: 'Missioni e regali', ru: 'Задания и подарки', ar: 'المهام والهدايا', zh: '任务与礼物', ja: 'ミッションとギフト', ko: '미션과 선물', hi: 'मिशन और उपहार' };
+function openRew() {
+  const m = modal({ title: '🎁 ' + (REW[lang()] || REW.en), body: '', buttons: [
+    { t: '📋 ' + t('tl_missions') + (missionsReady() ? '  ●' : ''), cls: 'green', fn: () => openMissions() },
+    { t: '🎁 ' + t('tl_daily') + (dailyReady() ? '  ●' : ''), cls: 'violet', fn: () => openDaily() },
+    { t: t('cancel'), cls: 'ghost' }] });
+  m.el.querySelector('.sc-f').style.flexDirection = 'column';
+}
+
 const TILES = [
-  ['train', '🎯', 'tl_train', '#19d3ff', () => trainMenu()],
-  ['local', '👥', 'tl_local', '#ff7a1a', () => H.play({ mode: 'local' })],
-  ['online', '🌐', 'tl_online', '#8b3dff', () => onlineMenu()],
-  ['shop', '🛒', 'tl_shop', '#ffc21a', () => openShop()],
+  ['train', ICO.train, 'tl_train', '#19d3ff', () => trainMenu()],
+  ['local', ICO.local, 'tl_local', '#ff7a1a', () => H.play({ mode: 'local' })],
+  ['online', ICO.online, 'tl_online', '#8b3dff', () => onlineMenu()],
+  ['shop', ICO.shop, 'tl_shop', '#ffc21a', () => openShop()],
   ['msn', '📋', 'tl_missions', '#19e6a0', () => openMissions()],
   ['daily', '🎁', 'tl_daily', '#ff3df2', () => openDaily()],
-  ['rank', '🌍', 'tl_ranking', '#2f7bff', () => openRanking()],
-  ['fr', '🤝', 'tl_friends', '#ff4d6d', () => openFriends((p) => invite(p))],
-  ['ach', '🏆', 'tl_ach', '#e8c200', () => openAch()],
+  ['rank', ICO.rank, 'tl_ranking', '#2f7bff', () => openRanking()],
+  ['fr', ICO.fr, 'tl_friends', '#ff4d6d', () => openFriends((p) => invite(p))],
+  ['ach', ICO.ach, 'tl_ach', '#e8c200', () => openAch()],
 ];
 /* posicion de cada boton en el lobby: modos (centro), laterales (derecha) y barra inferior */
 const GROUP = { train: 'modes', local: 'modes', online: 'modes', msn: 'side', daily: 'side', shop: 'nav', rank: 'nav', fr: 'nav', ach: 'nav', adm: 'nav' };
@@ -75,11 +95,11 @@ export function render() {
   $('lbModes').textContent = MODES_LBL[lang()] || MODES_LBL.en;
   $('lbPlayT').textContent = '▶ ' + t('play');
   $('lbPlayS').textContent = t('play_sub');
-  $('lbLang').textContent = (LANGS.find((x) => x[0] === lang()) || LANGS[0])[2] + ' ' + (LANGS.find((x) => x[0] === lang()) || LANGS[0])[1];
+  $('lbRewT').textContent = REW[lang()] || REW.en;
   document.querySelectorAll('#lobby [data-i]').forEach((e) => { e.textContent = t(e.dataset.i); });
   document.querySelectorAll('#lobby [data-i-ti]').forEach((e) => { e.title = t(e.dataset.iTi); });
-  const list = TILES.slice(); if (X.admin) list.push(['adm', '👑', 'tl_admin', '#ffd21f', () => openAdmin()]);
-  const slots = { modes: $('lbTiles'), side: $('lbSide'), nav: $('lbNav') }; Object.values(slots).forEach((e) => { e.innerHTML = ''; });
+  const list = TILES.filter((x) => GROUP[x[0]] !== 'side'); if (X.admin) list.push(['adm', ICO.adm, 'tl_admin', '#ffd21f', () => openAdmin()]);
+  const slots = { modes: $('lbTiles'), nav: $('lbNav') }; Object.values(slots).forEach((e) => { e.innerHTML = ''; });
   list.forEach(([k, ic, tk, c, fn]) => {
     const zone = GROUP[k] || 'modes', b = document.createElement('button'); b.dataset.tile = k; b.style.setProperty('--tc', c);
     b.className = zone === 'nav' ? 'nv' : zone === 'side' ? 'tile sd' : 'tile';
@@ -91,10 +111,10 @@ export function render() {
 }
 export async function badges() {
   const set = (id, on) => { const e = $(id); if (e) e.classList.toggle('on', !!on); };
-  set('d_msn', missionsReady()); set('d_daily', dailyReady());
+  set('d_rew', missionsReady() || dailyReady());
   set('dInbox', (await inboxCount()) > 0);
 }
-export const show = (on) => { const l = $('lobby'); if (l) { l.hidden = !on; if (on) { l.classList.remove('anim'); void l.offsetWidth; l.classList.add('anim'); } } };
+export const show = (on) => { const l = $('lobby'); if (l) { l.hidden = !on; if (on) { l.classList.remove('anim'); void l.offsetWidth; l.classList.add('anim'); } } L3.show(!!on); };
 
 /* ---------------------------------------------------------------- menús pequeños */
 function trainMenu() {
@@ -130,6 +150,7 @@ export function openSettings() {
   const sw = (k, label, fn) => { const r = document.createElement('div'); r.className = 'li'; r.innerHTML = '<b class="grow">' + esc(label) + '</b><span class="sw' + (SET[k] ? ' on' : '') + '"></span>'; r.onclick = () => { SET[k] = !SET[k]; r.querySelector('.sw').classList.toggle('on', SET[k]); saveSet(); sfx('click'); if (fn) fn(); }; sc.body.appendChild(r); };
   const sl = (k, label, fn) => { const r = document.createElement('div'); r.className = 'li'; r.innerHTML = '<b style="min-width:92px">' + esc(label) + '</b><input type="range" min="0" max="100" value="' + SET[k] + '">'; r.querySelector('input').oninput = (e) => { SET[k] = +e.target.value; saveSet(); fn && fn(); }; sc.body.appendChild(r); };
   const lb = document.createElement('button'); lb.className = 'b3d blue block'; lb.textContent = '🌐 ' + t('language') + ': ' + (LANGS.find((x) => x[0] === lang()) || LANGS[0])[1]; lb.onclick = () => openLang(() => { sc.close(); openSettings(); }); sc.body.appendChild(lb);
+  const ib = document.createElement('button'); ib.className = 'b3d violet block'; ib.textContent = '✉️ ' + t('inbox'); ib.onclick = () => { sc.close(); openInbox(); }; sc.body.appendChild(ib);
   sw('snd', '🔊 ' + t('sound'), applyVol);
   sl('mus', '🎵 ' + t('music'), applyVol); sl('sfx', '🔔 ' + t('sfx'), applyVol);
   sl('br', '☀️ ' + t('brightness'), applyLook);
