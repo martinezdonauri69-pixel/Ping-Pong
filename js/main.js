@@ -9,6 +9,7 @@ import { createStage } from './render3d.js';
 import { lookFor, migratePads } from './data/catalog.js';
 import * as Game from './game.js';
 import * as Lobby from './lobby.js';
+import { active as lobby3d } from './lobby3d.js';
 import * as Tuto from './tutorial.js';
 import { NET, watchInvites } from './online.js';
 
@@ -61,7 +62,7 @@ async function boot() {
     requestAnimationFrame(loop);
     const dt = Math.min(0.05, (ts - last) / 1000 || 0.016); last = ts;
     if (!stage || window.__dmrIntroActive) return;
-    if (Game.active()) Game.frame(dt); else if (!document.getElementById('scShop')) stage.frame(dt, null, {});   /* con la tienda abierta el fondo 3D se detiene: así toda la GPU se usa en la tienda */
+    if (Game.active()) Game.frame(dt); else if (!document.getElementById('scShop') && !lobby3d()) stage.frame(dt, null, {});   /* con la tienda abierta el fondo 3D se detiene: así toda la GPU se usa en la tienda */
   };
   requestAnimationFrame(loop);
   addEventListener('resize', () => stage && stage.resize());
