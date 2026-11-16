@@ -207,3 +207,37 @@
 @keyframes tswipe{0%,100%{transform:translate(-90px,0)}50%{transform:translate(90px,0)}}
 @media (orientation:landscape){#tuto .tswipe{animation-name:tswipeL}}
 @keyframes tswipeL{0%,100%{transform:translate(-30px,-60px)}50%{transform:translate(30px,60px)}}
+
+/* =====================================================================
+   Lobby con fondo 3D (clase .l3 la pone lobby3d.js solo si el 3D arrancó)
+   ===================================================================== */
+#lobby.l3{background:linear-gradient(180deg,rgba(2,3,12,.0) 0,rgba(2,3,12,0) 62%,rgba(2,3,12,.62) 100%)}
+#lobby.l3 .hero{justify-content:flex-start;perspective:none}
+#lobby.l3 .hero .mono,#lobby.l3 .hero .ppt{display:none}
+.hero .lg3{display:none}
+#lobby.l3 .hero .lg3{display:block;width:min(94%,520px);height:auto;max-height:100%;object-fit:contain;margin-top:2px;animation:lgFloat 5.5s ease-in-out infinite;filter:drop-shadow(0 6px 16px rgba(0,0,0,.55))}
+@keyframes lgFloat{50%{transform:translateY(-4px) scale(1.012)}}
+.si{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
+/* cabecera */
+#lobby .hdr .ib3d .si{width:20px;height:20px;stroke:#cfd9ff}
+#lobby .hdr .ib3d{border-radius:50%}
+/* Misiones y regalos (un solo botón) */
+.rew{align-self:center;display:flex;align-items:center;gap:9px;height:38px;padding:0 20px 0 14px;border-radius:30px;font-weight:800;font-size:13px;letter-spacing:.05em;color:#ffe9b0;
+  background:linear-gradient(180deg,rgba(40,30,90,.82),rgba(12,10,40,.88));border:1px solid rgba(255,200,90,.42);box-shadow:0 0 16px rgba(255,190,70,.18),0 3px 0 rgba(0,0,10,.5);width:auto!important}
+.rew .si{width:19px;height:19px;stroke:#ffd25a}
+.rew:active{transform:translateY(2px)}
+.rew .dot{top:-3px;inset-inline-end:-2px}
+/* modos y barra inferior: cristal con iconos de línea */
+#lobby.l3 .tile{background:linear-gradient(180deg,rgba(26,34,92,.8),rgba(6,10,36,.86));border:1px solid rgba(150,175,255,.24);border-radius:18px;
+  box-shadow:0 4px 0 rgba(0,0,12,.55),0 0 14px color-mix(in srgb,var(--tc,#3b6bff) 22%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#lobby.l3 .tile::before{content:'';position:absolute;left:18%;right:18%;top:0;height:2px;border-radius:2px;background:var(--tc);box-shadow:0 0 10px var(--tc)}
+#lobby.l3 .tile .ic,#lobby.l3 .nv .ic{display:grid;place-items:center;color:#cfd9ff;filter:none}
+#lobby.l3 .tile .ic .si{width:clamp(24px,4vh,30px);height:clamp(24px,4vh,30px)}
+#lobby.l3 .nv .ic .si{width:clamp(22px,3.6vh,26px);height:clamp(22px,3.6vh,26px)}
+#lobby.l3 .nv[data-tile=shop] .ic{color:#ffd25a}
+#lobby.l3 .navbar{background:rgba(6,9,30,.8);border:1px solid rgba(150,175,255,.2);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#lobby.l3 .playbtn{box-shadow:0 7px 0 #0a6b49,0 0 34px rgba(30,230,150,.5),inset 0 2px 0 rgba(255,255,255,.55)}
+@media (orientation:landscape) and (max-height:540px){
+  .rew{grid-area:side;justify-self:start}
+  #lobby.l3 .hero .lg3{width:auto;max-width:100%;height:100%;max-height:100%}
+}
