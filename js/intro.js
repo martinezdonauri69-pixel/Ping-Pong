@@ -5,8 +5,8 @@
 import * as THREE from '../vendor/three.module.min.js';
 import { SET } from './state.js';
 import { lang } from './i18n.js';
-import EX from './lang/extra.js';
-const tapTxt = () => ((EX[lang()] || EX.es || {}).intro_tap) || (EX.en || {}).intro_tap || 'TAP TO PLAY';
+const TAP = { es: 'TÓCALE PARA JUGAR', en: 'TAP TO PLAY', pt: 'TOQUE PARA JOGAR', fr: 'TOUCHEZ POUR JOUER', de: 'TIPPEN ZUM SPIELEN', it: 'TOCCA PER GIOCARE', ru: 'НАЖМИ, ЧТОБЫ ИГРАТЬ', ar: 'المس للعب', zh: '点击开始游戏', ja: 'タップしてプレイ', ko: '터치하여 시작', hi: 'खेलने के लिए टैप करें' };
+const tapTxt = () => TAP[lang()] || TAP.es;
 
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const seg = (t, a, b) => clamp((t - a) / (b - a));
