@@ -3,7 +3,7 @@
    de tus datos está en firestore.rules (ver LEEME.md). */
 
 /* 1) El juego solo corre en tu página (si alguien copia el código a otro dominio, se apaga) */
-const OK_HOSTS = ['martinezdonauri69-pixel.github.io', 'localhost', '127.0.0.1'];
+const OK_HOSTS = ['ping-pong-1nm.pages.dev', 'orbit-fenix-82x.github.io', 'localhost', '127.0.0.1'];
 if (!OK_HOSTS.includes(location.hostname)) {
   document.documentElement.innerHTML = '';
   throw new Error('host');
