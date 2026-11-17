@@ -209,7 +209,10 @@ export function play() {
     lR.position.set(-6.5, 4.5, 3.5); lB.position.set(6.5, 4.5, 3.5); lF.position.set(0, 3.5, 3); scene.add(lR, lB, lF);
 
     /* suelo brillante + reflejo de la mesa */
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(90, 90), new THREE.MeshStandardMaterial({ color: 0x04050d, roughness: 0.2, metalness: 0.85, transparent: true, opacity: 0.84, envMapIntensity: 1.2 }));
+    /* el suelo se desvanece hacia los bordes (sin línea recta de horizonte ni "caja" oscura) */
+    const fadeC = document.createElement('canvas'); fadeC.width = fadeC.height = 256; { const g = fadeC.getContext('2d'), r = g.createRadialGradient(128, 128, 0, 128, 128, 128); r.addColorStop(0, '#fff'); r.addColorStop(0.35, '#bbb'); r.addColorStop(0.7, '#222'); r.addColorStop(1, '#000'); g.fillStyle = r; g.fillRect(0, 0, 256, 256); }
+    const fadeTex = track(TEX(fadeC, false));
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshStandardMaterial({ color: 0x04050d, roughness: 0.2, metalness: 0.85, transparent: true, opacity: 0.84, envMapIntensity: 1.2, alphaMap: fadeTex, depthWrite: false }));
     floor.rotation.x = -Math.PI / 2; scene.add(floor);
     const puddle = (x, c) => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color: c, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 })); s.scale.set(12, 3.4, 1); s.position.set(x, 0.03, 0.5); scene.add(s); return s; };
     const pdR = puddle(-5.5, RED), pdB = puddle(5.5, BLUE);
