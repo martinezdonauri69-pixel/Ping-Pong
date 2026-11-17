@@ -124,7 +124,7 @@ export async function openInbox() {
     const s = await X.FS.getDocs(X.FS.query(X.FS.collection(X.db, 'inbox'), X.FS.where('toUid', '==', acct.uid)));
     const ann = await X.FS.getDocs(X.FS.query(X.FS.collection(X.db, 'announcements'), X.FS.orderBy('at', 'desc'), X.FS.limit(5))).catch(() => ({ docs: [] }));
     sc.body.innerHTML = '';
-    ann.docs.forEach((d) => { const a = d.data(); sc.body.insertAdjacentHTML('beforeend', '<div class="li"><span style="font-size:24px">📢</span><div class="grow"><b>' + esc(a.title || t('announce')) + '</b><small>' + esc(a.text || '') + '</small></div></div>'); });
+    ann.docs.forEach((d) => { const a = d.data(); sc.body.insertAdjacentHTML('beforeend', '<div class="li"><span style="font-size:24px">' + ({ info: 'ℹ️', mant: '🔧', upd: '⬆️', event: '🎉', warn: '⚠️' }[a.type] || '📢') + '</span><div class="grow"><b>' + esc(a.title || t('announce')) + '</b><small>' + esc(a.text || '') + '</small></div></div>'); });
     const docs = s.docs.sort((a, b) => (b.data().at || 0) - (a.data().at || 0));
     if (!docs.length && !ann.docs.length) sc.body.innerHTML = '<div class="muted c">' + esc(t('empty')) + '</div>';
     docs.forEach((d) => {
