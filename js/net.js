@@ -4,7 +4,7 @@ import { P, acct, loadLocal, applyRemote, cloudDoc, save } from './state.js';
 import { bus, ls, genId } from './util.js';
 import { t } from './i18n.js';
 
-export const X = { ready: false, db: null, auth: null, FS: null, FA: null, admin: false, failed: false };
+export const X = { ready: false, db: null, auth: null, FS: null, FA: null, admin: false, role: '', failed: false };
 let initP = null;
 
 export function init() {
@@ -50,7 +50,8 @@ async function afterAuth(user) {
   loadLocal(link.id);
   if (d) applyRemote(d);
   P.id = link.id;
-  X.admin = !!(await getDoc('admins/' + user.uid).catch(() => null));
+  const adm = await getDoc('admins/' + user.uid).catch(() => null);
+  X.admin = !!adm; X.role = adm ? (['admin', 'mod'].includes(adm.role) ? adm.role : 'owner') : '';
   ls.set('dmr2_acct', link.id); save(); bus.emit('auth');
 }
 
@@ -93,7 +94,7 @@ export async function register(name, pass, email) {
 
 export async function logout() {
   try { if (X.auth) await X.FA.signOut(X.auth); } catch (e) { /* nada */ }
-  acct.uid = null; acct.guest = true; X.admin = false; ls.del('dmr2_acct');
+  acct.uid = null; acct.guest = true; X.admin = false; X.role = ''; ls.del('dmr2_acct');
   loadLocal(null); bus.emit('auth');
 }
 
